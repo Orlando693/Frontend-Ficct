@@ -68,3 +68,5 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+html, body, #root { height: 100%; }
+body { overflow-x: hidden; background: #f8fafc; }
