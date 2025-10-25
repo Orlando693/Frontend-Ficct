@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
-import type { Usuario, RolBase } from "./types"
+import type { Usuario } from "./types"
+import * as roleApi from "../roles/api"
 
 type Props = {
   open: boolean
@@ -8,17 +9,21 @@ type Props = {
   initial?: Usuario | null
 }
 
-const roles: RolBase[] = ["Decanato", "CPD", "Jefatura", "Docente"]
-
 export default function UserFormModal({ open, onClose, onSubmit, initial }: Props) {
   const isEdit = !!initial
   const [nombre, setNombre] = useState("")
   const [correo, setCorreo] = useState("")
   const [username, setUsername] = useState("")
-  const [rol, setRol] = useState<RolBase>("Docente")
+  const [rol, setRol] = useState<string>("Docente")
   const [estado, setEstado] = useState<Usuario["estado"]>("PENDIENTE")
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
+  const [roles, setRoles] = useState<{ id: number; nombre: string }[]>([])
+
+  useEffect(() => {
+    if (!open) return
+    roleApi.list().then(rs => setRoles(rs.filter(r => r.estado === "ACTIVO").map(r => ({ id: r.id, nombre: r.nombre }))))
+  }, [open])
 
   useEffect(() => {
     if (open && initial) {
@@ -29,22 +34,14 @@ export default function UserFormModal({ open, onClose, onSubmit, initial }: Prop
       setEstado(initial.estado || "PENDIENTE")
       setError(null)
     } else if (open) {
-      setNombre("")
-      setCorreo("")
-      setUsername("")
-      setRol("Docente")
-      setEstado("PENDIENTE")
-      setError(null)
+      setNombre(""); setCorreo(""); setUsername(""); setRol("Docente"); setEstado("PENDIENTE"); setError(null)
     }
   }, [open, initial])
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
-    if (!nombre || !correo) {
-      setError("Nombre y correo son obligatorios.")
-      return
-    }
+    if (!nombre || !correo) { setError("Nombre y correo son obligatorios."); return }
     setSaving(true)
     try {
       const payload = isEdit
@@ -81,8 +78,8 @@ export default function UserFormModal({ open, onClose, onSubmit, initial }: Prop
           </div>
           <div>
             <label className="block text-sm mb-1">Rol base</label>
-            <select className="w-full border rounded-lg px-3 py-2" value={rol} onChange={e=>setRol(e.target.value as any)}>
-              {roles.map(r => <option key={r} value={r}>{r}</option>)}
+            <select className="w-full border rounded-lg px-3 py-2" value={rol} onChange={e=>setRol(e.target.value)}>
+              {roles.map(r => <option key={r.id} value={r.nombre}>{r.nombre}</option>)}
             </select>
           </div>
           <div>

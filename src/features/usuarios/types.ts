@@ -1,4 +1,4 @@
-export type RolBase = "Decanato" | "CPD" | "Jefatura" | "Docente"
+export type RolBase = "Decanato" | "CPD" | "Jefatura" | "Docente" | string
 export type EstadoUsuario = "ACTIVO" | "BLOQUEADO" | "PENDIENTE" | "INACTIVO"
 
 export interface Usuario {
@@ -9,7 +9,6 @@ export interface Usuario {
   telefono?: string
   rol: RolBase
   estado: EstadoUsuario
-  conHorarios?: boolean // para simular regla de no-borrado (docente con horarios)
+  conHorarios?: boolean
   creado?: string
 }
-
