@@ -1,105 +1,230 @@
-import { useEffect, useState } from "react"
-import type { Usuario } from "./types"
-import * as roleApi from "../roles/api"
+"use client"
 
-type Props = {
+import type React from "react"
+
+import { useEffect, useState } from "react"
+import type { Usuario, UsuarioForm, RolBase, EstadoUsuario } from "./types"
+import api from "./api"
+import { Eye, EyeOff, Sparkles, X } from "lucide-react"
+
+export default function UserFormModal({
+  open,
+  onClose,
+  onSaved,
+  initial,
+}: {
   open: boolean
   onClose: () => void
-  onSubmit: (data: Omit<Usuario, "id"> | Partial<Usuario>) => Promise<void>
+  onSaved?: (u: Usuario) => void
   initial?: Usuario | null
-}
-
-export default function UserFormModal({ open, onClose, onSubmit, initial }: Props) {
-  const isEdit = !!initial
+}) {
   const [nombre, setNombre] = useState("")
   const [correo, setCorreo] = useState("")
-  const [username, setUsername] = useState("")
-  const [rol, setRol] = useState<string>("Docente")
-  const [estado, setEstado] = useState<Usuario["estado"]>("PENDIENTE")
-  const [error, setError] = useState<string | null>(null)
-  const [saving, setSaving] = useState(false)
-  const [roles, setRoles] = useState<{ id: number; nombre: string }[]>([])
+  const [username, setUsername] = useState<string | null>(null)
+  const [rol, setRol] = useState<RolBase>("Docente")
+  const [estado, setEstado] = useState<EstadoUsuario>("PENDIENTE")
+  const [password, setPassword] = useState<string>("")
+  const [showPwd, setShowPwd] = useState(false)
+
+  const isEdit = !!initial
 
   useEffect(() => {
-    if (!open) return
-    roleApi.list().then(rs => setRoles(rs.filter(r => r.estado === "ACTIVO").map(r => ({ id: r.id, nombre: r.nombre }))))
-  }, [open])
-
-  useEffect(() => {
-    if (open && initial) {
-      setNombre(initial.nombre || "")
-      setCorreo(initial.correo || "")
-      setUsername(initial.username || "")
-      setRol(initial.rol || "Docente")
-      setEstado(initial.estado || "PENDIENTE")
-      setError(null)
-    } else if (open) {
-      setNombre(""); setCorreo(""); setUsername(""); setRol("Docente"); setEstado("PENDIENTE"); setError(null)
+    if (initial) {
+      setNombre(initial.nombre ?? "")
+      setCorreo(initial.correo ?? "")
+      setUsername(initial.username ?? null)
+      setRol(initial.rol ?? "Docente")
+      setEstado(initial.estado ?? "PENDIENTE")
+      setPassword("")
+    } else {
+      setNombre("")
+      setCorreo("")
+      setUsername(null)
+      setRol("Docente")
+      setEstado("PENDIENTE")
+      setPassword("")
     }
-  }, [open, initial])
+  }, [initial, open])
 
-  async function submit(e: React.FormEvent) {
+  function generatePassword() {
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789@$!%*?&"
+    let out = ""
+    for (let i = 0; i < 10; i++) out += chars[Math.floor(Math.random() * chars.length)]
+    setPassword(out)
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    setError(null)
-    if (!nombre || !correo) { setError("Nombre y correo son obligatorios."); return }
-    setSaving(true)
+
+    const payload: UsuarioForm = {
+      nombre,
+      correo,
+      username: username || undefined,
+      rol,
+      estado,
+      password: password || undefined,
+    }
+
     try {
-      const payload = isEdit
-        ? { ...initial, nombre, correo, username, rol, estado }
-        : { nombre, correo, username, rol, estado }
-      await onSubmit(payload as any)
+      const resp = isEdit && initial ? await api.update(initial.id, payload) : await api.create(payload)
+
+      if (typeof onSaved === "function") {
+        onSaved(resp)
+      }
+
+      const pwd = (password && password.length >= 6 ? password : resp.temp_password) || ""
+      if (pwd) {
+        try {
+          await navigator.clipboard.writeText(pwd)
+          alert(`Contraseña temporal: ${pwd}\n(Ya se copió al portapapeles)`)
+        } catch {
+          alert(`Contraseña temporal: ${pwd}`)
+        }
+      }
+
       onClose()
     } catch (err: any) {
-      setError(err?.message || "No se pudo guardar.")
-    } finally {
-      setSaving(false)
+      alert(err?.message || "No se pudo guardar el usuario.")
     }
   }
 
   if (!open) return null
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
-      <div className="w-full max-w-lg bg-white rounded-2xl shadow-xl p-6">
-        <h3 className="text-lg font-semibold mb-4">{isEdit ? "Editar usuario" : "Nuevo usuario"}</h3>
+    <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 backdrop-blur-sm p-4">
+      <form onSubmit={handleSubmit} className="w-full max-w-4xl bg-white rounded-3xl shadow-2xl overflow-hidden">
+        <div className="bg-gradient-to-r from-slate-900 to-slate-800 px-8 py-6 flex items-center justify-between">
+          <h3 className="text-2xl font-bold text-white">{isEdit ? "Editar usuario" : "Nuevo usuario"}</h3>
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-white hover:bg-white/10 rounded-full p-2 transition-colors"
+            aria-label="Cerrar"
+          >
+            <X size={24} />
+          </button>
+        </div>
 
-        <form onSubmit={submit} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="sm:col-span-2">
-            <label className="block text-sm mb-1">Nombre</label>
-            <input className="w-full border rounded-lg px-3 py-2" value={nombre} onChange={e=>setNombre(e.target.value)} />
-          </div>
-          <div className="sm:col-span-2">
-            <label className="block text-sm mb-1">Correo</label>
-            <input type="email" className="w-full border rounded-lg px-3 py-2" value={correo} onChange={e=>setCorreo(e.target.value)} />
-          </div>
-          <div>
-            <label className="block text-sm mb-1">Usuario (opcional)</label>
-            <input className="w-full border rounded-lg px-3 py-2" value={username} onChange={e=>setUsername(e.target.value)} />
-          </div>
-          <div>
-            <label className="block text-sm mb-1">Rol base</label>
-            <select className="w-full border rounded-lg px-3 py-2" value={rol} onChange={e=>setRol(e.target.value)}>
-              {roles.map(r => <option key={r.id} value={r.nombre}>{r.nombre}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm mb-1">Estado</label>
-            <select className="w-full border rounded-lg px-3 py-2" value={estado} onChange={e=>setEstado(e.target.value as any)}>
-              <option value="ACTIVO">ACTIVO</option>
-              <option value="PENDIENTE">PENDIENTE</option>
-              <option value="BLOQUEADO">BLOQUEADO</option>
-              <option value="INACTIVO">INACTIVO</option>
-            </select>
-          </div>
+        <div className="px-8 py-6 space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="col-span-1">
+              <label className="block text-sm font-semibold text-slate-700 mb-2">Nombre completo</label>
+              <input
+                className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 focus:border-slate-900 focus:outline-none transition-colors"
+                value={nombre}
+                onChange={(e) => setNombre(e.target.value)}
+                placeholder="Ingrese el nombre"
+                required
+              />
+            </div>
 
-          {error && <p className="sm:col-span-2 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg p-2">{error}</p>}
+            <div className="col-span-1">
+              <label className="block text-sm font-semibold text-slate-700 mb-2">Correo electrónico</label>
+              <input
+                type="email"
+                className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 focus:border-slate-900 focus:outline-none transition-colors"
+                value={correo}
+                onChange={(e) => setCorreo(e.target.value)}
+                placeholder="correo@ejemplo.com"
+                required
+              />
+            </div>
 
-          <div className="sm:col-span-2 flex justify-end gap-2 pt-2">
-            <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg border">Cancelar</button>
-            <button disabled={saving} className="px-4 py-2 rounded-lg bg-slate-900 text-white">{saving ? "Guardando..." : "Guardar"}</button>
+            <div className="col-span-1">
+              <label className="block text-sm font-semibold text-slate-700 mb-2">
+                Usuario <span className="text-slate-400 font-normal">(opcional)</span>
+              </label>
+              <input
+                className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 focus:border-slate-900 focus:outline-none transition-colors"
+                value={username ?? ""}
+                onChange={(e) => setUsername(e.target.value || null)}
+                placeholder="Nombre de usuario"
+              />
+            </div>
+
+            <div className="col-span-1">
+              <label className="block text-sm font-semibold text-slate-700 mb-2">Rol base</label>
+              <select
+                className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 focus:border-slate-900 focus:outline-none transition-colors bg-white"
+                value={rol}
+                onChange={(e) => setRol(e.target.value as RolBase)}
+              >
+                <option>Docente</option>
+                <option>Jefatura</option>
+                <option>CPD</option>
+                <option>Decanato</option>
+              </select>
+            </div>
+
+            <div className="col-span-1">
+              <label className="block text-sm font-semibold text-slate-700 mb-2">Estado</label>
+              <select
+                className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 focus:border-slate-900 focus:outline-none transition-colors bg-white"
+                value={estado}
+                onChange={(e) => setEstado(e.target.value as EstadoUsuario)}
+              >
+                <option>PENDIENTE</option>
+                <option>ACTIVO</option>
+                <option>BLOQUEADO</option>
+                <option>INACTIVO</option>
+              </select>
+            </div>
+
+            <div className="col-span-1 md:col-span-2">
+              <label className="block text-sm font-semibold text-slate-700 mb-2">
+                Contraseña temporal <span className="text-slate-400 font-normal">(opcional)</span>
+              </label>
+              <div className="flex gap-3">
+                <div className="flex-1 relative">
+                  <input
+                    className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 pr-12 focus:border-slate-900 focus:outline-none transition-colors"
+                    type={showPwd ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Dejar vacío para autogenerar"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPwd((v) => !v)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-600 hover:text-slate-900 transition-colors"
+                    title={showPwd ? "Ocultar" : "Mostrar"}
+                  >
+                    {showPwd ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </button>
+                </div>
+                <button
+                  type="button"
+                  onClick={generatePassword}
+                  className="px-6 py-3 rounded-xl bg-slate-900 text-white font-semibold flex items-center gap-2 hover:bg-slate-800 transition-colors shadow-lg"
+                  title="Generar contraseña"
+                >
+                  <Sparkles size={18} />
+                  Generar
+                </button>
+              </div>
+              <p className="text-xs text-slate-500 mt-2 leading-relaxed">
+                Si la dejas vacía, el sistema generará una contraseña automáticamente y podrás copiarla al guardar.
+              </p>
+            </div>
           </div>
-        </form>
-      </div>
+        </div>
+
+        <div className="bg-slate-50 px-8 py-6 flex justify-end gap-4 border-t border-slate-200">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-6 py-3 rounded-xl border-2 border-slate-300 bg-slate-600 text-white font-semibold hover:bg-slate-700 transition-colors"
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            className="px-8 py-3 rounded-xl bg-black text-white font-semibold hover:bg-slate-900 transition-colors shadow-lg"
+          >
+            Guardar usuario
+          </button>
+        </div>
+      </form>
     </div>
   )
 }

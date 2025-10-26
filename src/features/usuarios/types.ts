@@ -11,6 +11,7 @@ export interface Usuario {
   rol: RolBase;
   estado: EstadoUsuario;
   creado?: string | null;
+  temp_password?: string; 
 }
 
 // Si tu modal usa este tipo puedes mantenerlo; si no, puedes borrarlo
