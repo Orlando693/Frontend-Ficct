@@ -1,5 +1,4 @@
 import { createBrowserRouter, Navigate, Outlet } from "react-router-dom"
-import PublicLayout from "./(public)/layout"
 import Login from "./(public)/page"
 import AdminLayout from "./(private)/admin/layout"
 import AdminHome from "./(private)/admin/page"
@@ -16,7 +15,7 @@ function RequireAuth() {
 }
 
 const router = createBrowserRouter([
-  { element: <PublicLayout />, children: [{ path: "/", element: <Login /> }] },
+  {  children: [{ path: "/", element: <Login /> }] },
   {
     element: <RequireAuth />,
     children: [

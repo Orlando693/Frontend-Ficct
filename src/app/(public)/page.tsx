@@ -10,23 +10,54 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    setError(null)
-    if (!email || !password) return setError("Por favor ingresa tu correo y contraseña.")
-    try {
-      setLoading(true)
-      await new Promise((r) => setTimeout(r, 500)) // STUB
-      const data = { token: "demo-token", role: "Decanato" as const }
-      localStorage.setItem("auth_token", data.token)
-      localStorage.setItem("role", data.role)
-      const path: Record<string, string> = { Decanato: "/admin", CPD: "/admin", Jefatura: "/admin", Docente: "/admin" }
-      window.location.assign(path[data.role] || "/admin")
-    } catch (err: any) {
-      setError(err?.message || "No se pudo iniciar sesión.")
-    } finally {
-      setLoading(false)
-    }
+  e.preventDefault();
+  setError(null);
+
+  if (!email || !password) {
+    setError("Por favor ingresa tu correo y contraseña.");
+    return;
   }
+
+  try {
+    setLoading(true);
+
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json", // evita 419
+      },
+      body: JSON.stringify({ email, password }),
+    });
+
+    if (!res.ok) {
+      const txt = await res.text();
+      if (res.status === 403) throw new Error("Cuenta bloqueada o inactiva.");
+      if (res.status === 422) throw new Error("Revisa correo y contraseña.");
+      throw new Error(txt || "No se pudo iniciar sesión.");
+    }
+
+    const data = await res.json();
+
+    // Si marcó “Recordarme” guarda en localStorage; si no, en sessionStorage
+    const storage = remember ? localStorage : sessionStorage;
+    storage.setItem("auth_token", data.token);
+    storage.setItem("role", data.user?.rol ?? "");
+
+    // Tu redirección por rol (igual que ya la tienes)
+    const path: Record<string, string> = {
+      Decanato: "/admin",
+      CPD: "/admin",
+      Jefatura: "/admin",
+      Docente: "/admin",
+    };
+    window.location.assign(path[data.user?.rol] || "/admin");
+  } catch (err: any) {
+    setError(err?.message || "No se pudo iniciar sesión.");
+  } finally {
+    setLoading(false);
+  }
+}
 
   return (
     <main className="min-h-dvh w-screen overflow-hidden grid grid-cols-1 lg:grid-cols-[48%_52%] bg-white">
