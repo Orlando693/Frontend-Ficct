@@ -1,20 +1,20 @@
-import type { ReactNode } from "react"
-import { useEffect, useMemo, useState } from "react"
-import { Plus, Search, ShieldBan, ShieldCheck, Pencil, Trash2, RotateCcw, BadgeCheck } from "lucide-react"
-import type { Usuario, RolBase, EstadoUsuario } from "./types"
-import * as api from "./api"
-import UserFormModal from "./UserFormModal"
-import RoleModal from "./RoleModal"
-import * as roleApi from "../roles/api"
+import type { ReactNode } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { Plus, Search, ShieldBan, ShieldCheck, Pencil, Trash2, RotateCcw, BadgeCheck } from "lucide-react";
+import type { Usuario, RolBase, EstadoUsuario } from "./types";
+import api from "./api"; // 👈 estaba apuntando a otra ruta; usa el del mismo folder
+import UserFormModal from "./UserFormModal";
+import RoleModal from "./RoleModal";
+import * as roleApi from "../roles/api";
 
-const ESTADOS: EstadoUsuario[] = ["ACTIVO", "PENDIENTE", "BLOQUEADO", "INACTIVO"]
+const ESTADOS: EstadoUsuario[] = ["ACTIVO", "PENDIENTE", "BLOQUEADO", "INACTIVO"];
 
 function Badge({
   children,
   tone = "slate",
 }: {
-  children: ReactNode
-  tone?: "blue" | "yellow" | "green" | "red" | "slate"
+  children: ReactNode;
+  tone?: "blue" | "yellow" | "green" | "red" | "slate";
 }) {
   const map: Record<string, string> = {
     slate: "bg-slate-100 text-slate-800 ring-slate-200",
@@ -22,68 +22,96 @@ function Badge({
     yellow: "bg-yellow-50 text-yellow-800 ring-yellow-200",
     green: "bg-green-50 text-green-800 ring-green-200",
     red: "bg-red-50 text-red-800 ring-red-200",
-  }
-  return <span className={`px-2 py-0.5 text-xs rounded ring-1 ${map[tone]}`}>{children}</span>
+  };
+  return <span className={`px-2 py-0.5 text-xs rounded ring-1 ${map[tone]}`}>{children}</span>;
 }
 
 export default function UsersClient() {
-  const [data, setData] = useState<Usuario[]>([])
-  const [roles, setRoles] = useState<string[]>([])
-  const [q, setQ] = useState("")
-  const [fRol, setFRol] = useState<"" | RolBase>("")
-  const [fEstado, setFEstado] = useState<"" | EstadoUsuario>("")
-  const [modalOpen, setModalOpen] = useState(false)
-  const [editRow, setEditRow] = useState<Usuario | null>(null)
-  const [roleModalOpen, setRoleModalOpen] = useState(false)
-  const [roleRow, setRoleRow] = useState<Usuario | null>(null)
-  const [msg, setMsg] = useState<string | null>(null)
+  const [data, setData] = useState<Usuario[]>([]);
+  const [roles, setRoles] = useState<string[]>([]);
+  const [q, setQ] = useState("");
+  const [fRol, setFRol] = useState<"" | RolBase>("");
+  const [fEstado, setFEstado] = useState<"" | EstadoUsuario>("");
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editRow, setEditRow] = useState<Usuario | null>(null);
+  const [roleModalOpen, setRoleModalOpen] = useState(false);
+  const [roleRow, setRoleRow] = useState<Usuario | null>(null);
+  const [msg, setMsg] = useState<string | null>(null);
 
-  useEffect(() => { api.list().then(setData) }, [])
   useEffect(() => {
-    roleApi.list().then(rs => setRoles(rs.filter(r => r.estado === "ACTIVO").map(r => r.nombre)))
-  }, [])
+    api.list().then(setData).catch(console.error);
+  }, []);
+
+  useEffect(() => {
+    roleApi
+      .list()
+      .then((rs) => setRoles(rs.filter((r: any) => r.estado === "ACTIVO").map((r: any) => r.nombre)))
+      .catch(console.error);
+  }, []);
 
   const view = useMemo(() => {
     return data
       .filter((u) => !fRol || u.rol === fRol)
       .filter((u) => !fEstado || u.estado === fEstado)
-      .filter((u) => (u.nombre + " " + (u.username || "") + " " + u.correo).toLowerCase().includes(q.toLowerCase()))
-  }, [data, q, fRol, fEstado])
+      .filter((u) => (u.nombre + " " + (u.username || "") + " " + u.correo).toLowerCase().includes(q.toLowerCase()));
+  }, [data, q, fRol, fEstado]);
 
   function toneEstado(s: EstadoUsuario) {
     switch (s) {
-      case "ACTIVO": return "green"
-      case "BLOQUEADO": return "red"
-      case "PENDIENTE": return "yellow"
-      default: return "slate"
+      case "ACTIVO":
+        return "green";
+      case "BLOQUEADO":
+        return "red";
+      case "PENDIENTE":
+        return "yellow";
+      default:
+        return "slate";
     }
   }
 
   async function crear(payload: Omit<Usuario, "id">) {
-    const u = await api.create(payload); setData(d => [u, ...d]); setMsg("Usuario creado.")
+    const u = await api.create(payload);
+    setData((d) => [u, ...d]);
+    setMsg("Usuario creado.");
   }
   async function editar(payload: Partial<Usuario>) {
-    const u = await api.update(payload.id!, payload); setData(d => d.map(x => x.id === u.id ? u : x)); setMsg("Usuario actualizado.")
+    const u = await api.update(payload.id!, payload);
+    setData((d) => d.map((x) => (x.id === u.id ? u : x)));
+    setMsg("Usuario actualizado.");
   }
   async function bloquear(u: Usuario) {
-    const up = await api.setEstado(u.id, "BLOQUEADO"); setData(d => d.map(x => x.id === u.id ? up : x)); setMsg("Usuario bloqueado.")
+    const up = await api.setEstado(u.id, "BLOQUEADO");
+    setData((d) => d.map((x) => (x.id === u.id ? up : x)));
+    setMsg("Usuario bloqueado.");
   }
   async function activar(u: Usuario) {
-    const up = await api.setEstado(u.id, "ACTIVO"); setData(d => d.map(x => x.id === u.id ? up : x)); setMsg("Usuario activado.")
+    const up = await api.setEstado(u.id, "ACTIVO");
+    setData((d) => d.map((x) => (x.id === u.id ? up : x)));
+    setMsg("Usuario activado.");
   }
   async function eliminar(u: Usuario) {
-    try { await api.remove(u.id); setData(d => d.filter(x => x.id !== u.id)); setMsg("Usuario eliminado.") }
-    catch (e: any) { const upd = await api.list(); setData(upd); setMsg(e?.message || "No se pudo eliminar.") }
+    try {
+      await api.remove(u.id);
+      setData((d) => d.filter((x) => x.id !== u.id));
+      setMsg("Usuario eliminado.");
+    } catch (e: any) {
+      const upd = await api.list();
+      setData(upd);
+      setMsg(e?.message || "No se pudo eliminar.");
+    }
   }
-  async function reset(u: Usuario) { await api.resetPassword(u.id); setMsg("Se marcó para restablecer contraseña.") }
+  async function reset(u: Usuario) {
+    await api.resetPassword(u.id);
+    setMsg("Se restableció la contraseña.");
+  }
 
   // Asignación de rol desde RoleModal
-  async function assignRole(userId: number, roleName: string) {
-    const target = data.find(u => u.id === userId)
-    if (!target) return
-    const upd = await api.update(userId, { rol: roleName })
-    setData(d => d.map(x => x.id === userId ? upd : x))
-    setMsg("Rol asignado.")
+  async function assignRole(userId: number, roleName: RolBase) { // 👈 RolBase, no string
+    const target = data.find((u) => u.id === userId);
+    if (!target) return;
+    const upd = await api.update(userId, { rol: roleName });
+    setData((d) => d.map((x) => (x.id === userId ? upd : x)));
+    setMsg("Rol asignado.");
   }
 
   return (
