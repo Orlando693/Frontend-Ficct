@@ -1,6 +1,9 @@
 import { useState } from "react"
 import { Calendar, Shield, Clock, Mail, Lock, Eye, EyeOff } from "lucide-react"
 
+const API_BASE = (import.meta as any).env?.VITE_API_URL ?? "http://127.0.0.1:8000/api";
+
+
 export default function Login() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -21,12 +24,9 @@ export default function Login() {
   try {
     setLoading(true);
 
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
+   const res = await fetch(`${API_BASE}/auth/login`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json", // evita 419
-      },
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
       body: JSON.stringify({ email, password }),
     });
 
