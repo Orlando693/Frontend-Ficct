@@ -1,82 +1,132 @@
-import type { Carrera, EstadoCarrera } from "./types"
+import { apiFetch } from "../../lib/api";
+import type {
+  Carrera,
+  CreateCarreraDTO,
+  UpdateCarreraDTO,
+  EstadoCarrera,
+} from "./types";
 
-const KEY = "demo_carreras"
-
-function seed(): Carrera[] {
-  const init: Carrera[] = [
-    { id: 1, nombre: "Ingeniería de Sistemas",     sigla: "SIS", estado: "ACTIVA",   materiasAsociadas: 24, gruposAsociados: 18 },
-    { id: 2, nombre: "Ingeniería Informática",     sigla: "INF", estado: "ACTIVA",   materiasAsociadas: 20, gruposAsociados: 15 },
-    { id: 3, nombre: "Ingeniería Industrial",      sigla: "IND", estado: "INACTIVA", materiasAsociadas:  8, gruposAsociados:  6 },
-  ]
-  localStorage.setItem(KEY, JSON.stringify(init))
-  return init
+// ---- Helpers de normalización ----
+function pick<T>(obj: any, path: string, fallback: T): T {
+  try {
+    const parts = path.split(".");
+    let cur = obj;
+    for (const p of parts) cur = cur?.[p];
+    return (cur ?? fallback) as T;
+  } catch {
+    return fallback;
+  }
 }
 
-function read(): Carrera[] {
-  const raw = localStorage.getItem(KEY)
-  return raw ? (JSON.parse(raw) as Carrera[]) : seed()
-}
-function write(list: Carrera[]) {
-  localStorage.setItem(KEY, JSON.stringify(list))
-}
+function toOne(raw: any): Carrera {
+  // Soportar keys alternativas provenientes del backend
+  const id = raw?.id ?? raw?.carrera_id ?? raw?.uuid ?? raw?.ID ?? String(Math.random());
+  const nombre = raw?.nombre ?? raw?.name ?? "";
+  const sigla = (raw?.sigla ?? raw?.code ?? "").toString().toUpperCase();
+  const estado: EstadoCarrera =
+    ((raw?.estado ?? raw?.status ?? "ACTIVA") as string).toUpperCase() === "INACTIVA"
+      ? "INACTIVA"
+      : "ACTIVA";
 
-function logBitacora(evento: any) {
-  const logs = JSON.parse(localStorage.getItem("logs") || "[]")
-  logs.push({ at: new Date().toISOString(), ...evento })
-  localStorage.setItem("logs", JSON.stringify(logs))
-}
+  // Contadores (pueden venir en varios campos o no venir)
+  const materiasAsociadas =
+    Number(
+      raw?.materiasAsociadas ??
+        raw?.materias_asociadas ??
+        raw?.materias_count ??
+        raw?._materias ??
+        0
+    ) || 0;
 
-export async function list(): Promise<Carrera[]> { return read() }
+  const gruposAsociados =
+    Number(
+      raw?.gruposAsociados ??
+        raw?.grupos_asociados ??
+        raw?.grupos_count ??
+        raw?._grupos ??
+        0
+    ) || 0;
 
-export async function create(payload: Omit<Carrera, "id" | "materiasAsociadas" | "gruposAsociados">): Promise<Carrera> {
-  const list = read()
-  const sig = payload.sigla.trim().toUpperCase()
-  if (!payload.nombre.trim()) throw new Error("El nombre es obligatorio.")
-  if (!sig) throw new Error("La sigla es obligatoria.")
-  if (list.some(c => c.sigla.toUpperCase() === sig)) throw new Error("La sigla ya existe.")
-
-  const id = Math.max(0, ...list.map(c => c.id)) + 1
-  const nueva: Carrera = { id, nombre: payload.nombre.trim(), sigla: sig, estado: payload.estado, materiasAsociadas: 0, gruposAsociados: 0 }
-  write([...list, nueva])
-  logBitacora({ modulo: "Carreras", accion: "crear", carrera: nueva.sigla })
-  return nueva
-}
-
-export async function update(id: number, patch: Partial<Carrera>): Promise<Carrera> {
-  const list = read()
-  const i = list.findIndex(c => c.id === id)
-  if (i < 0) throw new Error("Carrera no encontrada.")
-
-  const nextSigla = (patch.sigla ?? list[i].sigla).trim().toUpperCase()
-  const nextNombre = (patch.nombre ?? list[i].nombre).trim()
-  if (!nextNombre) throw new Error("El nombre es obligatorio.")
-  if (!nextSigla) throw new Error("La sigla es obligatoria.")
-  if (list.some(c => c.id !== id && c.sigla.toUpperCase() === nextSigla)) throw new Error("La sigla ya existe.")
-
-  const upd: Carrera = { ...list[i], ...patch, sigla: nextSigla, nombre: nextNombre }
-  list[i] = upd
-  write(list)
-  logBitacora({ modulo: "Carreras", accion: "editar", carrera: upd.sigla })
-  return upd
+  return { id, nombre, sigla, estado, materiasAsociadas, gruposAsociados };
 }
 
-export async function setEstado(id: number, estado: EstadoCarrera): Promise<Carrera> {
-  const list = read()
-  const i = list.findIndex(c => c.id === id)
-  if (i < 0) throw new Error("Carrera no encontrada.")
-  list[i] = { ...list[i], estado }
-  write(list)
-  logBitacora({ modulo: "Carreras", accion: "estado", carrera: list[i].sigla, estado })
-  return list[i]
+function toMany(payload: any): Carrera[] {
+  // Acepta: {data:[...]}, [...], {items:[...]}, {carreras:[...]}
+  const arr: any[] = Array.isArray(payload)
+    ? payload
+    : Array.isArray(payload?.data)
+    ? payload.data
+    : Array.isArray(payload?.items)
+    ? payload.items
+    : Array.isArray(payload?.carreras)
+    ? payload.carreras
+    : [];
+  return arr.map(toOne);
 }
 
-// Si quisieras permitir eliminar (NO recomendado por CU7):
-export async function remove(id: number) {
-  const list = read()
-  const c = list.find(x => x.id === id)
-  if (!c) return
-  if (c.materiasAsociadas > 0 || c.gruposAsociados > 0)
-    throw new Error("No se puede eliminar: tiene materias/grupos asociados. Inactiva la carrera.")
-  write(list.filter(x => x.id !== id))
-  logBitacora({ modulo: "Carreras", accion: "eliminar", carrera: c.sigla })
+// ===============================================================
+//                      ENDPOINTS PÚBLICOS
+// ===============================================================
+
+/**
+ * GET /api/carreras
+ * Opcionalmente si tu backend soporta estadísticas:
+ *   /api/carreras?with=count
+ */
+export async function list(): Promise<Carrera[]> {
+  // intenta con stats; si no existe, cae al plano normal
+  try {
+    const j = await apiFetch("/carreras?with=count");
+    const rows = toMany(j);
+    if (rows.length) return rows;
+  } catch {
+    /* fallback */
+  }
+  const j2 = await apiFetch("/carreras");
+  return toMany(j2);
+}
+
+/** POST /api/carreras  */
+export async function create(payload: CreateCarreraDTO): Promise<Carrera> {
+  const j = await apiFetch("/carreras", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+  // el backend puede responder {data: {...}} o {...}
+  const raw = pick<any>(j, "data", j);
+  const row = toOne(raw);
+  // si el backend no calcula contadores al crear, los iniciamos en 0
+  row.materiasAsociadas ||= 0;
+  row.gruposAsociados ||= 0;
+  return row;
+}
+
+/** PUT /api/carreras/{id}  */
+export async function update(id: number | string, payload: UpdateCarreraDTO): Promise<Carrera> {
+  const j = await apiFetch(`/carreras/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  const raw = pick<any>(j, "data", j);
+  return toOne(raw);
+}
+
+/** PATCH /api/carreras/{id}/estado */
+export async function setEstado(id: number | string, estado: EstadoCarrera): Promise<Carrera> {
+  // si tu backend lo maneja como PUT /carreras/{id}, funcionar á igual
+  try {
+    const j = await apiFetch(`/carreras/${id}/estado`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ estado }),
+    });
+    const raw = pick<any>(j, "data", j);
+    return toOne(raw);
+  } catch {
+    // fallback a update completo
+    return update(id, { estado });
+  }
 }
