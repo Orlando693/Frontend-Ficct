@@ -1,2 +1,6 @@
+import React from "react";
 import ReportsPage from "../../../../features/reportes/ReportsPage"
-export default function Reportes() { return <ReportsPage /> }
+
+export default function Page() {
+  return <ReportsPage />;
+}
