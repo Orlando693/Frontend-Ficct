@@ -30,7 +30,8 @@ function Badge({
 
 export default function UsersClient() {
   const [data, setData] = useState<Usuario[]>([])
-  const [roles, setRoles] = useState<string[]>([])
+  // 👉 los nombres de rol se tipan como RolBase[]
+  const [roles, setRoles] = useState<RolBase[]>([])
   const [q, setQ] = useState("")
   const [fRol, setFRol] = useState<"" | RolBase>("")
   const [fEstado, setFEstado] = useState<"" | EstadoUsuario>("")
@@ -47,7 +48,8 @@ export default function UsersClient() {
   useEffect(() => {
     roleApi
       .list()
-      .then((rs) => setRoles(rs.filter((r: any) => r.estado === "ACTIVO").map((r: any) => r.nombre)))
+      // solo activos y nos quedamos con el nombre como RolBase
+      .then((rs) => setRoles(rs.filter((r: any) => r.estado === "ACTIVO").map((r: any) => r.nombre as RolBase)))
       .catch(console.error)
   }, [])
 
@@ -107,10 +109,11 @@ export default function UsersClient() {
     setMsg("Se restableció la contraseña.")
   }
 
-  async function assignRole(userId: number, roleName: RolBase) {
+  // 👉 compatible con RoleModal: acepta RolBase | string
+  async function assignRole(userId: number, roleName: RolBase | string) {
     const target = data.find((u) => u.id === userId)
     if (!target) return
-    const upd = await api.update(userId, { rol: roleName })
+    const upd = await api.update(userId, { rol: roleName as RolBase })
     setData((d) => d.map((x) => (x.id === userId ? upd : x)))
     setMsg("Rol asignado.")
   }
@@ -189,15 +192,11 @@ export default function UsersClient() {
         </div>
       </div>
 
-      {/* Mensaje */}
       {msg && (
         <div className="bg-blue-50 border border-blue-200 text-blue-900 rounded-lg p-4">
           <div className="flex justify-between items-start gap-4">
             <p className="text-xs sm:text-sm">{msg}</p>
-            <button
-              onClick={() => setMsg(null)}
-              className="text-xs sm:text-sm text-blue-800 hover:underline whitespace-nowrap"
-            >
+            <button onClick={() => setMsg(null)} className="text-xs sm:text-sm text-blue-800 hover:underline whitespace-nowrap">
               Cerrar
             </button>
           </div>
@@ -236,8 +235,7 @@ export default function UsersClient() {
                         }}
                         className="px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg bg-slate-900 text-white hover:bg-slate-800 inline-flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs whitespace-nowrap"
                       >
-                        <Pencil className="w-3 h-3 sm:w-3.5 sm:h-3.5" />{" "}
-                        <span className="hidden sm:inline">Editar</span>
+                        <Pencil className="w-3 h-3 sm:w-3.5 sm:h-3.5" /> <span className="hidden sm:inline">Editar</span>
                       </button>
 
                       <button
@@ -247,8 +245,7 @@ export default function UsersClient() {
                         }}
                         className="px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 inline-flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs whitespace-nowrap"
                       >
-                        <BadgeCheck className="w-3 h-3 sm:w-3.5 sm:h-3.5" />{" "}
-                        <span className="hidden sm:inline">Rol</span>
+                        <BadgeCheck className="w-3 h-3 sm:w-3.5 sm:h-3.5" /> <span className="hidden sm:inline">Rol</span>
                       </button>
 
                       {u.estado === "BLOQUEADO" ? (
@@ -256,16 +253,14 @@ export default function UsersClient() {
                           onClick={() => activar(u)}
                           className="px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 inline-flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs whitespace-nowrap"
                         >
-                          <ShieldCheck className="w-3 h-3 sm:w-3.5 sm:h-3.5" />{" "}
-                          <span className="hidden sm:inline">Activar</span>
+                          <ShieldCheck className="w-3 h-3 sm:w-3.5 sm:h-3.5" /> <span className="hidden sm:inline">Activar</span>
                         </button>
                       ) : (
                         <button
                           onClick={() => bloquear(u)}
                           className="px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg bg-amber-600 text-white hover:bg-amber-700 inline-flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs whitespace-nowrap"
                         >
-                          <ShieldBan className="w-3 h-3 sm:w-3.5 sm:h-3.5" />{" "}
-                          <span className="hidden sm:inline">Bloquear</span>
+                          <ShieldBan className="w-3 h-3 sm:w-3.5 sm:h-3.5" /> <span className="hidden sm:inline">Bloquear</span>
                         </button>
                       )}
 
@@ -273,8 +268,7 @@ export default function UsersClient() {
                         onClick={() => reset(u)}
                         className="px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg bg-sky-600 text-white hover:bg-sky-700 inline-flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs whitespace-nowrap"
                       >
-                        <RotateCcw className="w-3 h-3 sm:w-3.5 sm:h-3.5" />{" "}
-                        <span className="hidden sm:inline">Reset</span>
+                        <RotateCcw className="w-3 h-3 sm:w-3.5 sm:h-3.5" /> <span className="hidden sm:inline">Reset</span>
                       </button>
 
                       <button
@@ -283,8 +277,7 @@ export default function UsersClient() {
                         }}
                         className="px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg bg-red-600 text-white hover:bg-red-700 inline-flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs whitespace-nowrap"
                       >
-                        <Trash2 className="w-3 h-3 sm:w-3.5 sm:h-3.5" />{" "}
-                        <span className="hidden sm:inline">Eliminar</span>
+                        <Trash2 className="w-3 h-3 sm:w-3.5 sm:h-3.5" /> <span className="hidden sm:inline">Eliminar</span>
                       </button>
                     </div>
                   </td>

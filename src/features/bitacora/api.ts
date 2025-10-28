@@ -30,7 +30,7 @@ type ApiBitacoraItem = {
 
 // ==== Mapper al shape que usa tu UI (at = created_at)
 function toUI(row: ApiBitacoraItem) {
-  return { ...row, at: row.created_at };
+  return { ...row, at: row.created_at, entidad: row.entidad ?? null  };
 }
 
 // ==== FUNCIONES con los nombres que usa tu BitacoraPage ====

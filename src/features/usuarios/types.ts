@@ -11,7 +11,7 @@ export interface Usuario {
   rol: RolBase;
   estado: EstadoUsuario;
   creado?: string | null;
-  temp_password?: string; 
+  temp_password?: string | null;
 }
 
 // Si tu modal usa este tipo puedes mantenerlo; si no, puedes borrarlo
@@ -23,6 +23,7 @@ export interface UsuarioForm {
   rol: RolBase;
   estado?: EstadoUsuario;
   password?: string;
+  
 }
 
 // Para respuestas paginadas del backend (si las necesitas en otro lado)

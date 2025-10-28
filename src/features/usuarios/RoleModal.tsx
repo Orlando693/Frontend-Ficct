@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react"
 import * as roleApi from "../roles/api"
 import type { Rol, Modulo, PermSet } from "../roles/types"
-import type { Usuario } from "./types"
+import type { Usuario, RolBase } from "./types"
 
 type Tab = "asignar" | "configurar"
 
@@ -16,7 +16,7 @@ export default function RoleModal({
   open: boolean
   user: Usuario | null
   onClose: () => void
-  onAssign: (userId: number, roleName: string) => Promise<void>
+  onAssign: (userId: number, roleName: RolBase | string) => Promise<void> // ← ensanchado
 }) {
   const [tab, setTab] = useState<Tab>("asignar")
   const [roles, setRoles] = useState<Rol[]>([])
@@ -25,7 +25,7 @@ export default function RoleModal({
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
 
-  const mods = roleApi.modules()
+  // ❌ const mods = roleApi.modules()  // ← eliminado: no se usaba en este componente
 
   async function load() {
     const r = await roleApi.list()
