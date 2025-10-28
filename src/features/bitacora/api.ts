@@ -1,68 +1,91 @@
-// === Bitácora API (Vite) ===
-// Lee VITE_API_URL y VITE_BYPASS_AUTH desde .env de Vite
-const API_URL =
-  (import.meta as any).env?.VITE_API_URL || "http://127.0.0.1:8000/api"
+// ==== Config ====
+const API_BASE: string =
+  (import.meta as any)?.env?.VITE_API_URL ?? "http://127.0.0.1:8000/api";
 
-// Si BYPASS_AUTH=true -> NO enviar cookies (evita problemas CORS)
-const USE_CREDENTIALS =
-  String((import.meta as any).env?.VITE_BYPASS_AUTH || "").toLowerCase() !== "true"
-
-async function apiFetch(path: string, init?: RequestInit) {
-  const res = await fetch(`${API_URL}${path}`, {
-    credentials: USE_CREDENTIALS ? "include" : "omit",
-    headers: { Accept: "application/json", "Content-Type": "application/json" },
-    ...init,
-  })
-  let json: any = null
-  try { json = await res.json() } catch (_) {}
-  if (!res.ok) {
-    const msg = (json && (json.message || json.error)) || `HTTP ${res.status}`
-    throw new Error(msg)
-  }
-  return json
+// ==== Auth helpers ====
+function getToken(): string | null {
+  return localStorage.getItem("auth_token") || sessionStorage.getItem("auth_token");
 }
 
-export type ListOptions = { q?: string; page?: number; per_page?: number }
-
-const toRow = (r: any) => ({
-  id: r.id,
-  modulo: r.modulo,
-  accion: r.accion,
-  descripcion: r.descripcion ?? null,
-  usuario: r.usuario ?? null,
-  ip: r.ip ?? null,
-  created_at: r.created_at ?? r.at ?? new Date().toISOString(),
-})
-
-const unwrapDataArray = (json: any): any[] => {
-  if (Array.isArray(json)) return json
-  if (json?.data && Array.isArray(json.data)) return json.data
-  if (json?.items && Array.isArray(json.items)) return json.items
-  return []
+/** Headers siempre como Record<string,string> (evita errores TS) */
+function baseHeaders(opts?: { json?: boolean }): Record<string, string> {
+  const h: Record<string, string> = { Accept: "application/json" };
+  if (opts?.json) h["Content-Type"] = "application/json";
+  const t = getToken();
+  if (t) h["Authorization"] = `Bearer ${t}`;
+  return h;
 }
 
-export async function list(opts: ListOptions = {}) {
-  const params = new URLSearchParams()
-  if (opts.q) params.set("q", opts.q)
-  if (opts.page) params.set("page", String(opts.page))
-  if (opts.per_page) params.set("per_page", String(opts.per_page))
-  const query = params.toString() ? `?${params.toString()}` : ""
-  const json = await apiFetch(`/bitacora${query}`)
-  return unwrapDataArray(json).map(toRow)
+// ==== Types que vienen del backend
+type ApiBitacoraItem = {
+  id: number;
+  modulo: string;
+  accion: string;
+  descripcion: string | null;
+  usuario: string | null;
+  ip: string | null;
+  created_at: string; // backend
+};
+
+// ==== Mapper al shape que usa tu UI (at = created_at)
+function toUI(row: ApiBitacoraItem) {
+  return { ...row, at: row.created_at };
 }
 
-export async function remove(id: number | string) {
-  await apiFetch(`/bitacora/${id}`, { method: "DELETE" })
+// ==== FUNCIONES con los nombres que usa tu BitacoraPage ====
+
+export async function list() {
+  const res = await fetch(`${API_BASE}/bitacora`, {
+    method: "GET",
+    headers: baseHeaders(),
+  });
+  if (res.status === 401) throw new Error("AUTH_401");
+  if (!res.ok) throw new Error(await res.text());
+  const data: ApiBitacoraItem[] = await res.json();
+  return data.map(toUI);
 }
 
 export async function clearAll() {
-  try {
-    await apiFetch(`/bitacora`, { method: "DELETE" }) // ruta oficial
-  } catch (e: any) {
-    if (String(e?.message || "").includes("404")) {
-      await apiFetch(`/bitacora/clear`, { method: "DELETE" }) // fallback
-    } else {
-      throw e
-    }
+  // Intento oficial
+  let res = await fetch(`${API_BASE}/bitacora`, {
+    method: "DELETE",
+    headers: baseHeaders(),
+  });
+  // Fallback si el backend expone /clear
+  if (res.status === 404) {
+    res = await fetch(`${API_BASE}/bitacora/clear`, {
+      method: "DELETE",
+      headers: baseHeaders(),
+    });
   }
+  if (res.status === 401) throw new Error("AUTH_401");
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+export async function remove(id: number | string) {
+  const res = await fetch(`${API_BASE}/bitacora/${id}`, {
+    method: "DELETE",
+    headers: baseHeaders(),
+  });
+  if (res.status === 401) throw new Error("AUTH_401");
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+// (opcional) crear manual desde el front
+export async function create(payload: {
+  modulo: string;
+  accion: string;
+  descripcion?: string | null;
+  usuario?: string | null;
+}) {
+  const res = await fetch(`${API_BASE}/bitacora`, {
+    method: "POST",
+    headers: baseHeaders({ json: true }),
+    body: JSON.stringify(payload),
+  });
+  if (res.status === 401) throw new Error("AUTH_401");
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
 }

@@ -37,7 +37,7 @@ export default function BitacoraPage() {
     if (!q) return rows
     const qq = q.toLowerCase()
     return rows.filter(r => [
-      r.modulo, r.accion, r.detalle, r.usuario, r.ip,
+      r.modulo, r.accion, r.descripcion, r.usuario, r.ip,
     ].join(" ").toLowerCase().includes(qq))
   }, [rows, q])
 
@@ -114,7 +114,7 @@ export default function BitacoraPage() {
                     <span className="text-teal-700 font-medium">{r.modulo}</span>
                   </td>
                   <td className="px-3 py-2 uppercase tracking-wide text-slate-700">{r.accion}</td>
-                  <td className="px-3 py-2">{r.detalle || r.entidad || "-"}</td>
+                  <td className="px-3 py-2">{r.descripcion || r.entidad || "-"}</td>
                   <td className="px-3 py-2">{r.usuario || "—"}</td>
                   <td className="px-3 py-2">{r.ip || "—"}</td>
                   <td className="px-3 py-2">
