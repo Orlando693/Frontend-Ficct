@@ -25,6 +25,7 @@ type ApiBitacoraItem = {
   usuario: string | null;
   ip: string | null;
   created_at: string; // backend
+  entidad?: string | null;
 };
 
 // ==== Mapper al shape que usa tu UI (at = created_at)
