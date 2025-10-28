@@ -1,8 +1,11 @@
+"use client"
+
+import type React from "react"
+
 import { useState } from "react"
 import { Calendar, Shield, Clock, Mail, Lock, Eye, EyeOff } from "lucide-react"
 
-const API_BASE = (import.meta as any).env?.VITE_API_URL ?? "http://127.0.0.1:8000/api";
-
+const API_BASE = (import.meta as any).env?.VITE_API_URL ?? "http://127.0.0.1:8000/api"
 
 export default function Login() {
   const [email, setEmail] = useState("")
@@ -13,56 +16,56 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
-  e.preventDefault();
-  setError(null);
+    e.preventDefault()
+    setError(null)
 
-  if (!email || !password) {
-    setError("Por favor ingresa tu correo y contraseña.");
-    return;
-  }
-
-  try {
-    setLoading(true);
-
-   const res = await fetch(`${API_BASE}/auth/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Accept: "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
-
-    if (!res.ok) {
-      const txt = await res.text();
-      if (res.status === 403) throw new Error("Cuenta bloqueada o inactiva.");
-      if (res.status === 422) throw new Error("Revisa correo y contraseña.");
-      throw new Error(txt || "No se pudo iniciar sesión.");
+    if (!email || !password) {
+      setError("Por favor ingresa tu correo y contraseña.")
+      return
     }
 
-    const data = await res.json();
+    try {
+      setLoading(true)
 
-    // Si marcó “Recordarme” guarda en localStorage; si no, en sessionStorage
-    const storage = remember ? localStorage : sessionStorage;
-    storage.setItem("auth_token", data.token);
-    storage.setItem("role", data.user?.rol ?? "");
+      const res = await fetch(`${API_BASE}/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({ email, password }),
+      })
 
-    // Tu redirección por rol (igual que ya la tienes)
-    const path: Record<string, string> = {
-      Decanato: "/admin",
-      CPD: "/admin",
-      Jefatura: "/admin",
-      Docente: "/admin",
-    };
-    window.location.assign(path[data.user?.rol] || "/admin");
-  } catch (err: any) {
-    setError(err?.message || "No se pudo iniciar sesión.");
-  } finally {
-    setLoading(false);
+      if (!res.ok) {
+        const txt = await res.text()
+        if (res.status === 403) throw new Error("Cuenta bloqueada o inactiva.")
+        if (res.status === 422) throw new Error("Revisa correo y contraseña.")
+        throw new Error(txt || "No se pudo iniciar sesión.")
+      }
+
+      const data = await res.json()
+
+      // Si marcó “Recordarme” guarda en localStorage; si no, en sessionStorage
+      const storage = remember ? localStorage : sessionStorage
+      storage.setItem("auth_token", data.token)
+      storage.setItem("role", data.user?.rol ?? "")
+
+      // Tu redirección por rol (igual que ya la tienes)
+      const path: Record<string, string> = {
+        Decanato: "/admin",
+        CPD: "/admin",
+        Jefatura: "/admin",
+        Docente: "/admin",
+      }
+      window.location.assign(path[data.user?.rol] || "/admin")
+    } catch (err: any) {
+      setError(err?.message || "No se pudo iniciar sesión.")
+    } finally {
+      setLoading(false)
+    }
   }
-}
 
   return (
     <main className="min-h-dvh w-screen overflow-hidden grid grid-cols-1 lg:grid-cols-[48%_52%] bg-white">
       {/* IZQUIERDA: bienvenida */}
-      <section className="bg-slate-900 text-white">
+      <section className="hidden lg:block bg-slate-900 text-white">
         <div className="h-full flex items-center p-8 xl:p-14">
           <div className="max-w-xl">
             <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/15 text-blue-300 text-xs">
@@ -75,21 +78,27 @@ export default function Login() {
 
             <ul className="mt-6 space-y-3">
               <li className="flex gap-3">
-                <span className="p-2 rounded-xl bg-blue-500/10"><Calendar className="w-5 h-5 text-blue-300" /></span>
+                <span className="p-2 rounded-xl bg-blue-500/10">
+                  <Calendar className="w-5 h-5 text-blue-300" />
+                </span>
                 <div>
                   <p className="font-medium">Evita conflictos de horarios</p>
                   <p className="text-sm text-slate-400">Disponibilidad de aulas y docentes en tiempo real</p>
                 </div>
               </li>
               <li className="flex gap-3">
-                <span className="p-2 rounded-xl bg-blue-500/10"><Shield className="w-5 h-5 text-blue-300" /></span>
+                <span className="p-2 rounded-xl bg-blue-500/10">
+                  <Shield className="w-5 h-5 text-blue-300" />
+                </span>
                 <div>
                   <p className="font-medium">Control por roles</p>
                   <p className="text-sm text-slate-400">Permisos según tu función</p>
                 </div>
               </li>
               <li className="flex gap-3">
-                <span className="p-2 rounded-xl bg-blue-500/10"><Clock className="w-5 h-5 text-blue-300" /></span>
+                <span className="p-2 rounded-xl bg-blue-500/10">
+                  <Clock className="w-5 h-5 text-blue-300" />
+                </span>
                 <div>
                   <p className="font-medium">Registro de actividad</p>
                   <p className="text-sm text-slate-400">Bitácora de eventos y cambios</p>
@@ -105,18 +114,24 @@ export default function Login() {
       </section>
 
       {/* DERECHA: login (centrado suave, leve sesgo a la izquierda) */}
-      <section className="bg-slate-50 flex items-center justify-center">
-        {/* - Centramos con justify-center
-            - Y movemos un poquito a la izquierda con lg:-ml-6 */}
-        <div className="w-full max-w-md px-6 md:px-10 lg:px-12 lg:-ml-6">
+      <section className="bg-slate-50 flex items-center justify-center p-4 sm:p-6">
+        <div className="w-full max-w-md px-4 sm:px-6 md:px-10 lg:px-12 lg:-ml-6">
+          <div className="mb-6 lg:hidden text-center">
+            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/15 text-blue-600 text-xs mb-3">
+              <span className="w-2 h-2 rounded-full bg-blue-500" /> FICCT Sistema Académico
+            </span>
+          </div>
+
           <header className="mb-6">
-            <h2 className="text-3xl font-bold text-slate-900">Iniciar sesión</h2>
-            <p className="text-slate-600">Ingresa tus credenciales para acceder al sistema</p>
+            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900">Iniciar sesión</h2>
+            <p className="text-sm sm:text-base text-slate-600">Ingresa tus credenciales para acceder al sistema</p>
           </header>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-slate-900 mb-2">Correo electrónico</label>
+              <label htmlFor="email" className="block text-sm font-medium text-slate-900 mb-2">
+                Correo electrónico
+              </label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                 <input
@@ -126,14 +141,16 @@ export default function Login() {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="tu.correo@ficct.edu.bo"
                   className="w-full pl-11 pr-4 py-3 bg-white border border-slate-300 rounded-lg
-                             text-slate-900 placeholder:text-slate-400
+                             text-slate-900 placeholder:text-slate-400 text-sm sm:text-base
                              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-slate-900 mb-2">Contraseña</label>
+              <label htmlFor="password" className="block text-sm font-medium text-slate-900 mb-2">
+                Contraseña
+              </label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                 <input
@@ -143,7 +160,7 @@ export default function Login() {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   className="w-full pl-11 pr-12 py-3 bg-white border border-slate-300 rounded-lg
-                             text-slate-900 placeholder:text-slate-400
+                             text-slate-900 placeholder:text-slate-400 text-sm sm:text-base
                              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
                 <button
@@ -156,7 +173,7 @@ export default function Login() {
               </div>
             </div>
 
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col xs:flex-row items-start xs:items-center justify-between gap-2 xs:gap-0">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
@@ -180,9 +197,9 @@ export default function Login() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full px-4 py-3 bg-slate-900 text-white font-medium rounded-lg
+              className="w-full px-4 py-3 bg-slate-900 text-white font-medium rounded-lg text-sm sm:text-base
                          hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:ring-offset-2
-                         disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+                         disabled:opacity-50 disabled:cursor-not-allowed shadow-sm transition-colors"
             >
               {loading ? "Iniciando sesión..." : "Iniciar sesión"}
             </button>
