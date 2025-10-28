@@ -1,11 +1,14 @@
 "use client"
 
 import type React from "react"
-
 import { useEffect, useState } from "react"
+
 import type { Usuario, UsuarioForm, RolBase, EstadoUsuario } from "./types"
 import api from "./api"
 import { Eye, EyeOff, Sparkles, X } from "lucide-react"
+
+// 👇 Extiende Usuario con la posible contraseña temporal que devuelve el backend
+type UsuarioWithTemp = Usuario & { temp_password?: string | null }
 
 export default function UserFormModal({
   open,
@@ -47,7 +50,8 @@ export default function UserFormModal({
   }, [initial, open])
 
   function generatePassword() {
-    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789@$!%*?&"
+    const chars =
+      "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789@$!%*?&"
     let out = ""
     for (let i = 0; i < 10; i++) out += chars[Math.floor(Math.random() * chars.length)]
     setPassword(out)
@@ -66,13 +70,17 @@ export default function UserFormModal({
     }
 
     try {
-      const resp = isEdit && initial ? await api.update(initial.id, payload) : await api.create(payload)
+      // 👇 Fuerza el tipo que incluye temp_password
+      const resp = (await (isEdit && initial
+        ? api.update(initial.id, payload)
+        : api.create(payload))) as UsuarioWithTemp
 
-      if (typeof onSaved === "function") {
-        onSaved(resp)
-      }
+      if (onSaved) onSaved(resp)
 
-      const pwd = (password && password.length >= 6 ? password : resp.temp_password) || ""
+      // Si no ingresaste password, usa la temporal del backend (si vino)
+      const pwd =
+        (password && password.length >= 6 ? password : resp.temp_password) || ""
+
       if (pwd) {
         try {
           await navigator.clipboard.writeText(pwd)
@@ -97,7 +105,9 @@ export default function UserFormModal({
         className="w-full max-w-4xl bg-white rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[95vh] flex flex-col"
       >
         <div className="bg-gradient-to-r from-slate-900 to-slate-800 px-4 sm:px-8 py-4 sm:py-6 flex items-center justify-between">
-          <h3 className="text-lg sm:text-2xl font-bold text-white">{isEdit ? "Editar usuario" : "Nuevo usuario"}</h3>
+          <h3 className="text-lg sm:text-2xl font-bold text-white">
+            {isEdit ? "Editar usuario" : "Nuevo usuario"}
+          </h3>
           <button
             type="button"
             onClick={onClose}
@@ -112,7 +122,9 @@ export default function UserFormModal({
         <div className="px-4 sm:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6 overflow-y-auto flex-1">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
             <div className="col-span-1">
-              <label className="block text-sm font-semibold text-slate-700 mb-2">Nombre completo</label>
+              <label className="block text-sm font-semibold text-slate-700 mb-2">
+                Nombre completo
+              </label>
               <input
                 className="w-full border-2 border-slate-200 rounded-xl px-3 sm:px-4 py-2 sm:py-3 focus:border-slate-900 focus:outline-none transition-colors text-sm sm:text-base"
                 value={nombre}
@@ -123,7 +135,9 @@ export default function UserFormModal({
             </div>
 
             <div className="col-span-1">
-              <label className="block text-sm font-semibold text-slate-700 mb-2">Correo electrónico</label>
+              <label className="block text-sm font-semibold text-slate-700 mb-2">
+                Correo electrónico
+              </label>
               <input
                 type="email"
                 className="w-full border-2 border-slate-200 rounded-xl px-3 sm:px-4 py-2 sm:py-3 focus:border-slate-900 focus:outline-none transition-colors text-sm sm:text-base"
@@ -147,7 +161,9 @@ export default function UserFormModal({
             </div>
 
             <div className="col-span-1">
-              <label className="block text-sm font-semibold text-slate-700 mb-2">Rol base</label>
+              <label className="block text-sm font-semibold text-slate-700 mb-2">
+                Rol base
+              </label>
               <select
                 className="w-full border-2 border-slate-200 rounded-xl px-3 sm:px-4 py-2 sm:py-3 focus:border-slate-900 focus:outline-none transition-colors bg-white text-sm sm:text-base"
                 value={rol}
@@ -161,7 +177,9 @@ export default function UserFormModal({
             </div>
 
             <div className="col-span-1">
-              <label className="block text-sm font-semibold text-slate-700 mb-2">Estado</label>
+              <label className="block text-sm font-semibold text-slate-700 mb-2">
+                Estado
+              </label>
               <select
                 className="w-full border-2 border-slate-200 rounded-xl px-3 sm:px-4 py-2 sm:py-3 focus:border-slate-900 focus:outline-none transition-colors bg-white text-sm sm:text-base"
                 value={estado}
@@ -193,11 +211,7 @@ export default function UserFormModal({
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-600 hover:text-slate-900 transition-colors"
                     title={showPwd ? "Ocultar" : "Mostrar"}
                   >
-                    {showPwd ? (
-                      <EyeOff size={18} className="sm:w-5 sm:h-5" />
-                    ) : (
-                      <Eye size={18} className="sm:w-5 sm:h-5" />
-                    )}
+                    {showPwd ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
                 <button
@@ -206,7 +220,7 @@ export default function UserFormModal({
                   className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 rounded-xl bg-slate-900 text-white font-semibold flex items-center justify-center gap-2 hover:bg-slate-800 transition-colors shadow-lg text-sm sm:text-base"
                   title="Generar contraseña"
                 >
-                  <Sparkles size={16} className="sm:w-[18px] sm:h-[18px]" />
+                  <Sparkles size={16} />
                   Generar
                 </button>
               </div>
