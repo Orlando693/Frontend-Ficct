@@ -1,6 +1,7 @@
-// src/features/auth/session.ts
 export const TOKEN_KEY = "auth_token";
-export const USER_KEY  = "auth_user"; // guarda el usuario completo { id, nombre, rol, ... }
+export const USER_KEY  = "auth_user";
+export const ROLE_KEY  = "role";
+export const ABIL_KEY  = "abilities";
 
 export function getToken(): string | null {
   return localStorage.getItem(TOKEN_KEY) || sessionStorage.getItem(TOKEN_KEY);
@@ -18,41 +19,37 @@ export function getUser<T = any>(): T | null {
 
 export function getRole(): string | null {
   const u: any = getUser();
-  const roleFromUser = u?.rol ?? u?.role ?? null;
-
-  const roleMirror =
-    localStorage.getItem("role") || sessionStorage.getItem("role");
-
-  return (roleFromUser || roleMirror || null) as string | null;
+  const fromUser = u?.rol ?? u?.role ?? null;
+  const mirror =
+    localStorage.getItem(ROLE_KEY) || sessionStorage.getItem(ROLE_KEY);
+  return (fromUser || mirror || null) as string | null;
 }
 
 export function isAuthenticated(): boolean {
   return !!getToken();
 }
 
-export function saveAuth(token: string, user?: any, remember = true) {
+export function saveAuth(token: string, user?: any, abilities?: any, remember = true) {
   const main = remember ? localStorage : sessionStorage;
   const other = remember ? sessionStorage : localStorage;
 
-  // guarda en el storage elegido
   main.setItem(TOKEN_KEY, token);
   if (user) {
-    main.setItem(USER_KEY, JSON.stringify(user));
+    try { main.setItem(USER_KEY, JSON.stringify(user)); } catch {}
     const role = user?.rol ?? user?.role;
-    if (role) main.setItem("role", role); // espejo por compatibilidad
+    if (role) main.setItem(ROLE_KEY, role);
+  }
+  if (abilities) {
+    try { main.setItem(ABIL_KEY, JSON.stringify(abilities)); } catch {}
   }
 
-  // limpia el otro storage para no mezclar
-  other.removeItem(TOKEN_KEY);
-  other.removeItem(USER_KEY);
-  other.removeItem("role");
+  // limpia el otro storage para no mezclar sesiones
+  [TOKEN_KEY, USER_KEY, ROLE_KEY, ABIL_KEY].forEach(k => other.removeItem(k));
 }
 
 export function clearAuth() {
-  localStorage.removeItem(TOKEN_KEY);
-  localStorage.removeItem(USER_KEY);
-  localStorage.removeItem("role");
-  sessionStorage.removeItem(TOKEN_KEY);
-  sessionStorage.removeItem(USER_KEY);
-  sessionStorage.removeItem("role");
+  [TOKEN_KEY, USER_KEY, ROLE_KEY, ABIL_KEY].forEach(k => {
+    localStorage.removeItem(k);
+    sessionStorage.removeItem(k);
+  });
 }
