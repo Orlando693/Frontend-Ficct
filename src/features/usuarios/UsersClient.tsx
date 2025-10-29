@@ -252,6 +252,14 @@ export default function UsersClient() {
                           <ShieldBan className="w-3 h-3 sm:w-3.5 sm:h-3.5" /> <span className="hidden sm:inline">Bloquear</span>
                         </button>
                       )}
+
+                      <button
+                        onClick={() => reset(u)}
+                        className="px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg bg-sky-600 text-white hover:bg-sky-700 inline-flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs whitespace-nowrap"
+                      >
+                        <RotateCcw className="w-3 h-3 sm:w-3.5 sm:h-3.5" /> <span className="hidden sm:inline">Reset</span>
+                      </button>
+
                       <button
                         onClick={() => {
                           if (confirm("¿Eliminar usuario?")) eliminar(u)
