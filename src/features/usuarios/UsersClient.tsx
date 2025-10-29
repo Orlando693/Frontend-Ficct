@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react"
 import { useEffect, useMemo, useState } from "react"
-import { Plus, Search, ShieldBan, ShieldCheck, Pencil, Trash2, RotateCcw, BadgeCheck } from "lucide-react"
+import { Plus, Search, ShieldBan, ShieldCheck, Pencil, Trash2, BadgeCheck } from "lucide-react"
 import type { Usuario, RolBase, EstadoUsuario } from "./types"
 import api from "./api"
 import UserFormModal from "./UserFormModal"
@@ -103,10 +103,6 @@ export default function UsersClient() {
       setData(upd)
       setMsg(e?.message || "No se pudo eliminar.")
     }
-  }
-  async function reset(u: Usuario) {
-    await api.resetPassword(u.id)
-    setMsg("Se restableció la contraseña.")
   }
 
   // 👉 compatible con RoleModal: acepta RolBase | string
@@ -252,13 +248,6 @@ export default function UsersClient() {
                           <ShieldBan className="w-3 h-3 sm:w-3.5 sm:h-3.5" /> <span className="hidden sm:inline">Bloquear</span>
                         </button>
                       )}
-
-                      <button
-                        onClick={() => reset(u)}
-                        className="px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg bg-sky-600 text-white hover:bg-sky-700 inline-flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs whitespace-nowrap"
-                      >
-                        <RotateCcw className="w-3 h-3 sm:w-3.5 sm:h-3.5" /> <span className="hidden sm:inline">Reset</span>
-                      </button>
 
                       <button
                         onClick={() => {
