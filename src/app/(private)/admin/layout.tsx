@@ -74,7 +74,7 @@ export default function AdminLayout() {
               onClick={() => setIsSidebarOpen(false)}
             >
               <BarChart3 className="w-5 h-5" />
-              Reportes
+               Gestión de Reportes
             </NavLink>
 
             <NavLink
@@ -83,7 +83,7 @@ export default function AdminLayout() {
               onClick={() => setIsSidebarOpen(false)}
             >
               <GraduationCap className="w-5 h-5" />
-              Carreras
+               Gestión de Carreras
             </NavLink>
 
             <NavLink
@@ -92,7 +92,7 @@ export default function AdminLayout() {
               onClick={() => setIsSidebarOpen(false)}
             >
               <ScrollText className="w-5 h-5" />
-              Bitácora
+              Gestión de Bitácora
             </NavLink>
           </nav>
 
