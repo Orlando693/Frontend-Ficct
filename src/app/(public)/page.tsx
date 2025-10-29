@@ -1,11 +1,12 @@
 "use client"
 
 import type React from "react"
-
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Calendar, Shield, Clock, Mail, Lock, Eye, EyeOff } from "lucide-react"
 
-const API_BASE = (import.meta as any).env?.VITE_API_URL ?? "http://127.0.0.1:8000/api"
+// Asegúrate que en Vercel tengas VITE_API_URL=https://backend-ficct-production.up.railway.app/api
+const API_BASE =
+  (import.meta as any).env?.VITE_API_URL ?? "http://127.0.0.1:8080/api"
 
 export default function Login() {
   const [email, setEmail] = useState("")
@@ -14,6 +15,15 @@ export default function Login() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showPassword, setShowPassword] = useState(false)
+
+  // Si ya hay sesión, entra directo
+  useEffect(() => {
+    const token =
+      localStorage.getItem("auth_token") || sessionStorage.getItem("auth_token")
+    if (token) {
+      window.location.replace("/admin")
+    }
+  }, [])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -29,25 +39,48 @@ export default function Login() {
 
       const res = await fetch(`${API_BASE}/auth/login`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
         body: JSON.stringify({ email, password }),
       })
 
       if (!res.ok) {
-        const txt = await res.text()
-        if (res.status === 403) throw new Error("Cuenta bloqueada o inactiva.")
-        if (res.status === 422) throw new Error("Revisa correo y contraseña.")
-        throw new Error(txt || "No se pudo iniciar sesión.")
+        let msg = "No se pudo iniciar sesión."
+        if (res.status === 422) msg = "Revisa correo y contraseña."
+        if (res.status === 403) msg = "Cuenta bloqueada o inactiva."
+        setPassword("") // limpiar por seguridad
+        throw new Error(msg)
       }
 
-      const data = await res.json()
+      const data = await res.json() // { token, user, abilities }
 
-      // Si marcó “Recordarme” guarda en localStorage; si no, en sessionStorage
-      const storage = remember ? localStorage : sessionStorage
-      storage.setItem("auth_token", data.token)
-      storage.setItem("role", data.user?.rol ?? "")
+      // Elegimos dónde guardar según "Recordarme"
+      const main = remember ? localStorage : sessionStorage
+      const other = remember ? sessionStorage : localStorage
 
-      // Tu redirección por rol (igual que ya la tienes)
+      // Guardar sesión completa
+      main.setItem("auth_token", data.token)
+      if (data.user) {
+        try {
+          main.setItem("auth_user", JSON.stringify(data.user))
+        } catch {}
+        const role = data.user?.rol ?? data.user?.role
+        if (role) main.setItem("role", role)
+      }
+      if (data.abilities) {
+        try {
+          main.setItem("abilities", JSON.stringify(data.abilities))
+        } catch {}
+      }
+
+      // Limpiar el otro storage para no mezclar sesiones
+      ;["auth_token", "auth_user", "role", "abilities"].forEach((k) =>
+        other.removeItem(k),
+      )
+
+      // Redirección por rol (por ahora todos a /admin)
       const path: Record<string, string> = {
         Decanato: "/admin",
         CPD: "/admin",
@@ -71,7 +104,9 @@ export default function Login() {
             <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/15 text-blue-300 text-xs">
               <span className="w-2 h-2 rounded-full bg-blue-400" /> FICCT Sistema Académico
             </span>
-            <h1 className="mt-4 text-4xl font-semibold leading-tight">Planificación Académica Inteligente</h1>
+            <h1 className="mt-4 text-4xl font-semibold leading-tight">
+              Planificación Académica Inteligente
+            </h1>
             <p className="mt-3 text-slate-300">
               Gestiona horarios, aulas y asistencia. Acceso para Decanato, CPD, Jefatura y Docentes.
             </p>
@@ -83,7 +118,9 @@ export default function Login() {
                 </span>
                 <div>
                   <p className="font-medium">Evita conflictos de horarios</p>
-                  <p className="text-sm text-slate-400">Disponibilidad de aulas y docentes en tiempo real</p>
+                  <p className="text-sm text-slate-400">
+                    Disponibilidad de aulas y docentes en tiempo real
+                  </p>
                 </div>
               </li>
               <li className="flex gap-3">
@@ -113,7 +150,7 @@ export default function Login() {
         </div>
       </section>
 
-      {/* DERECHA: login (centrado suave, leve sesgo a la izquierda) */}
+      {/* DERECHA: login */}
       <section className="bg-slate-50 flex items-center justify-center p-4 sm:p-6">
         <div className="w-full max-w-md px-4 sm:px-6 md:px-10 lg:px-12 lg:-ml-6">
           <div className="mb-6 lg:hidden text-center">
@@ -123,13 +160,20 @@ export default function Login() {
           </div>
 
           <header className="mb-6">
-            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900">Iniciar sesión</h2>
-            <p className="text-sm sm:text-base text-slate-600">Ingresa tus credenciales para acceder al sistema</p>
+            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900">
+              Iniciar sesión
+            </h2>
+            <p className="text-sm sm:text-base text-slate-600">
+              Ingresa tus credenciales para acceder al sistema
+            </p>
           </header>
 
           <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-slate-900 mb-2">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-slate-900 mb-2"
+              >
                 Correo electrónico
               </label>
               <div className="relative">
@@ -148,7 +192,10 @@ export default function Login() {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-slate-900 mb-2">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-slate-900 mb-2"
+              >
                 Contraseña
               </label>
               <div className="relative">
@@ -168,7 +215,11 @@ export default function Login() {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                 >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  {showPassword ? (
+                    <EyeOff className="w-5 h-5" />
+                  ) : (
+                    <Eye className="w-5 h-5" />
+                  )}
                 </button>
               </div>
             </div>
@@ -183,7 +234,10 @@ export default function Login() {
                 />
                 <span className="text-sm text-slate-700">Recordarme</span>
               </label>
-              <a href="#" className="text-sm text-blue-600 hover:text-blue-700 font-medium">
+              <a
+                href="#"
+                className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+              >
                 ¿Olvidaste tu contraseña?
               </a>
             </div>
