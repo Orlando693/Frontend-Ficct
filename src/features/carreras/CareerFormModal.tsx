@@ -99,7 +99,11 @@ export default function CareerFormModal({
           )}
 
           <div className="sm:col-span-2 flex flex-col-reverse sm:flex-row justify-end gap-2 pt-2">
-            <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg border text-sm">
+           <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 rounded-lg text-sm bg-slate-700 text-white hover:bg-slate-800 border border-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-500"
+               >
               Cancelar
             </button>
             <button
