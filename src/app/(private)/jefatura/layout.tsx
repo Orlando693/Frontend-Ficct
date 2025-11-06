@@ -1,7 +1,7 @@
 "use client"
 
 import { NavLink, Outlet } from "react-router-dom"
-import { LayoutDashboard, LogOut, BarChart3, ScrollText, Menu, X } from "lucide-react"
+import { LayoutDashboard, LogOut, BarChart3, ScrollText, Menu, X, BookOpenText, Layers } from "lucide-react"
 import { useState } from "react"
 import { logout } from "../../../features/auth/logout"
 
@@ -56,6 +56,22 @@ export default function JefaturaLayout() {
               <ScrollText className="w-5 h-5" />
               Gestión de Bitácora
             </NavLink>
+            <NavLink
+                to="/jefatura/materias"
+                className={({isActive}) => `${linkBase} ${isActive ? linkActive : ""}`}
+                onClick={() => setIsSidebarOpen(false)}
+                >
+                <BookOpenText className="w-5 h-5" />
+                Gestión de Materias
+            </NavLink>
+            <NavLink
+                to="/jefatura/grupos"
+                className={({isActive}) => `${linkBase} ${isActive ? linkActive : ""}`}
+                onClick={() => setIsSidebarOpen(false)}
+                >
+                <Layers className="w-5 h-5" />
+                Gestión de Grupos
+             </NavLink>
           </nav>
 
           <div className="mt-auto pt-6">

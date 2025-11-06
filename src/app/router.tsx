@@ -24,6 +24,9 @@ import DocenteLayout from "./(private)/docente/layout"
 import DocenteHome from "./(private)/docente/page"
 
 import { isAuthenticated } from "../features/auth/session"
+import JefaturaMateriasPage from "./(private)/jefatura/materias/page"
+import JefaturaGruposPage from "./(private)/jefatura/grupos/page"
+import AdminAulasPage from "./(private)/admin/aulas/page";
 
 const DEV_BYPASS =
   import.meta.env.DEV && import.meta.env.VITE_BYPASS_AUTH === "true"
@@ -50,6 +53,7 @@ const router = createBrowserRouter([
           { path: "usuarios", element: <GestionUsuarios /> },
           { path: "reportes", element: <Reportes /> },
           { path: "carreras", element: <Carreras /> },
+          { path: "aulas", element: <AdminAulasPage /> },
           { path: "bitacora", element: <Bitacora /> },
         ],
       },
@@ -60,7 +64,8 @@ const router = createBrowserRouter([
         element: <JefaturaLayout />,
         children: [
           { index: true, element: <JefaturaHome /> },
-          // Reusamos tus páginas existentes
+          { path: "materias", element: <JefaturaMateriasPage /> },
+           { path: "grupos", element: <JefaturaGruposPage /> },
           { path: "reportes", element: <Reportes /> },
           { path: "bitacora", element: <Bitacora /> },
         ],

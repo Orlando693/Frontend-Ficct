@@ -1,7 +1,7 @@
 "use client"
 
 import { NavLink, Outlet } from "react-router-dom"
-import { LayoutDashboard, Users, LogOut, BarChart3, GraduationCap, ScrollText, Menu, X } from "lucide-react"
+import { LayoutDashboard, Users, LogOut, BarChart3, GraduationCap, ScrollText, Menu, X, School } from "lucide-react"
 import { useState } from "react"
 import { logout } from "../../../features/auth/logout"; 
 
@@ -94,6 +94,14 @@ export default function AdminLayout() {
               <ScrollText className="w-5 h-5" />
               Gestión de Bitácora
             </NavLink>
+            <NavLink
+                to="/admin/aulas"
+                className={({isActive}) => `${linkBase} ${isActive ? linkActive : ""}`}
+                onClick={() => setIsSidebarOpen(false)}
+              >
+                <School className="w-5 h-5" />
+                Gestión de Aulas
+              </NavLink>
           </nav>
 
           <div className="mt-auto pt-6">

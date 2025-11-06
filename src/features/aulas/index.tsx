@@ -1,0 +1,149 @@
+"use client";
+import { useEffect, useState } from "react";
+import { Search, Plus } from "lucide-react";
+import type { Aula, AulaEstado, AulaTipo } from "./types";
+import { listAulas, createAula, updateAula, setEstadoAula } from "./api";
+import AulaModal from "./AulaModal";
+import AulasTable from "./AulasTable";
+
+export default function AulasFeature() {
+  const [items, setItems] = useState<Aula[]>([]);
+  const [q, setQ] = useState("");
+  const [estado, setEstado] = useState<"todas" | AulaEstado>("todas");
+  const [tipo, setTipo] = useState<"todos" | AulaTipo>("todos");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [editing, setEditing] = useState<Aula | null>(null);
+
+  const labelCls = "block text-sm text-slate-600";
+  const inputCls =
+    "rounded-xl border border-slate-200 px-3 py-2 bg-white text-slate-800 " +
+    "placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-300";
+
+  async function fetchData() {
+    try {
+      setLoading(true);
+      setError(null);
+      const res = await listAulas({ q, estado, tipo });
+      setItems(res.data);
+    } catch (e: any) {
+      setError(e.message || "Error al listar aulas");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => { fetchData(); }, [q, estado, tipo]);
+
+  function openCreate() { setEditing(null); setOpen(true); }
+  function openEdit(a: Aula) { setEditing(a); setOpen(true); }
+
+  async function save(values: { numero: string; tipo: AulaTipo; capacidad: number; piso: number | null; }) {
+    try {
+      setBusy(true);
+      setError(null);
+      if (editing) {
+        await updateAula(editing.id, values);
+      } else {
+        await createAula(values);
+      }
+      setOpen(false);
+      fetchData();
+    } catch (e: any) {
+      setError(e.message || "No se pudo guardar");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function toggle(a: Aula, next: AulaEstado) {
+    try {
+      setError(null);
+      await setEstadoAula(a.id, next); // back debe validar “programación vigente”
+      fetchData();
+    } catch (e: any) {
+      setError(e.message || "No se pudo cambiar el estado");
+    }
+  }
+
+  return (
+    <div className="space-y-4">
+      <header className="flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-semibold">Gestión de Aulas</h2>
+          <p className="text-slate-600 text-sm">
+            Crear, editar, activar/inactivar y listar aulas
+            {loading ? " · Cargando…" : ""}
+          </p>
+        </div>
+        <button
+          onClick={openCreate}
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800"
+        >
+          <Plus className="w-4 h-4" />
+          Nueva aula
+        </button>
+      </header>
+
+      <section className="grid lg:grid-cols-[1fr_220px_220px] gap-3">
+        <div className="relative">
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Buscar por código/ubicación…"
+            className={"w-full pl-9 pr-3 py-2 " + inputCls}
+          />
+        </div>
+
+        <select
+          value={estado}
+          onChange={(e) => setEstado(e.target.value as any)}
+          className={inputCls}
+        >
+          <option value="todas">Todas</option>
+          <option value="activo">Activas</option>
+          <option value="inactivo">Inactivas</option>
+          <option value="mantenimiento">Mantenimiento</option>
+        </select>
+
+        <select
+          value={tipo}
+          onChange={(e) => setTipo(e.target.value as any)}
+          className={inputCls}
+        >
+          <option value="todos">Todos los tipos</option>
+          <option value="teoria">Teoría</option>
+          <option value="laboratorio">Laboratorio</option>
+          <option value="auditorio">Auditorio</option>
+        </select>
+      </section>
+
+      <AulasTable items={items} onEdit={openEdit} onToggle={toggle} />
+
+      {error && (
+        <div className="p-3 rounded-xl bg-red-50 text-red-700 border border-red-200">{error}</div>
+      )}
+
+      <AulaModal
+        open={open}
+        initial={
+          editing
+            ? {
+                numero: editing.numero,
+                tipo: editing.tipo as AulaTipo,
+                capacidad: editing.capacidad,
+                piso: editing.piso,
+              }
+            : undefined
+        }
+        onCancel={() => setOpen(false)}
+        onSubmit={save}
+        busy={busy}
+      />
+    </div>
+  );
+}
