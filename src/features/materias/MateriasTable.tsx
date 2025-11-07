@@ -1,15 +1,17 @@
-import { Pencil, ToggleLeft, ToggleRight } from "lucide-react";
+import { Pencil, ToggleLeft, ToggleRight, Trash2 } from "lucide-react";
 import type { Materia, MateriaEstado } from "./types";
 
 export default function MateriasTable({
   items,
   onEdit,
   onToggle,
+  onDelete,
   loading = false,
 }: {
   items: Materia[];
   onEdit: (m: Materia) => void;
   onToggle: (m: Materia, next: MateriaEstado) => void;
+  onDelete: (m: Materia) => void;
   loading?: boolean;
 }) {
   const SkeletonRow = ({ i }: { i: number }) => (
@@ -111,6 +113,15 @@ export default function MateriasTable({
                         >
                           <ToggleIcon className="w-4 h-4" />
                           {toggleLabel}
+                        </button>
+
+                        <button
+                          onClick={() => onDelete(m)}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-700 text-white hover:bg-rose-600 focus:outline-none focus:ring-2 focus:ring-rose-300"
+                          title="Eliminar"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          Eliminar
                         </button>
                       </div>
                     </td>

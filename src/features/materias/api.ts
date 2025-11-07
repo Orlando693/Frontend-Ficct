@@ -60,3 +60,11 @@ export async function setEstadoMateria(id: number, estado: MateriaEstado) {
   const json = await handle<{ data: MateriaDTO }>(res);
   return { data: dtoToModel(json.data) };
 }
+
+export async function deleteMateria(id: number) {
+  const res = await fetch(`${BASE}/${id}`, {
+    method: "DELETE",
+    headers: authHeaders(),
+  });
+  return handle<{ message?: string }>(res);
+}

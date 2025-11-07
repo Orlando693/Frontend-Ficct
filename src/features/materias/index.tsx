@@ -7,6 +7,7 @@ import {
   createMateria,
   updateMateria,
   setEstadoMateria,
+  deleteMateria,
 } from "./api";
 import MateriasTable from "./MateriasTable";
 import MateriaModal from "./MateriaModal";
@@ -81,6 +82,21 @@ export default function MateriasFeature() {
     }
   }
 
+  async function remove(m: Materia) {
+    if (typeof window !== "undefined") {
+      const confirmed = window.confirm(`¿Eliminar la materia "${m.nombre}" (${m.codigo})?`);
+      if (!confirmed) return;
+    }
+
+    try {
+      setError(null);
+      await deleteMateria(m.id);
+      fetchData();
+    } catch (e: any) {
+      setError(e.message || "No se pudo eliminar la materia");
+    }
+  }
+
   return (
     <div className="space-y-4 text-slate-800">
       <header className="flex items-center justify-between">
@@ -128,6 +144,7 @@ export default function MateriasFeature() {
         loading={loading}
         onEdit={openEdit}
         onToggle={toggle}
+        onDelete={remove}
       />
 
       {error && (
