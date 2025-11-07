@@ -27,6 +27,11 @@ import { isAuthenticated } from "../features/auth/session"
 import JefaturaMateriasPage from "./(private)/jefatura/materias/page"
 import JefaturaGruposPage from "./(private)/jefatura/grupos/page"
 import AdminAulasPage from "./(private)/admin/aulas/page";
+import AdminParametrosPage from "./(private)/admin/parametros/page";
+import JefaturaProgramacionPage from "./(private)/jefatura/programacion/page";
+import JefaturaProgAutoPage from "./(private)/jefatura/programacion/auto/page";
+import JefaturaProgDispPage from "./(private)/jefatura/programacion/disponibilidad/page";
+import DocenteAsistenciaPage from "./(private)/docente/asistencia/page";
 
 const DEV_BYPASS =
   import.meta.env.DEV && import.meta.env.VITE_BYPASS_AUTH === "true"
@@ -54,6 +59,7 @@ const router = createBrowserRouter([
           { path: "reportes", element: <Reportes /> },
           { path: "carreras", element: <Carreras /> },
           { path: "aulas", element: <AdminAulasPage /> },
+          { path: "parametros", element: <AdminParametrosPage /> },
           { path: "bitacora", element: <Bitacora /> },
         ],
       },
@@ -65,7 +71,10 @@ const router = createBrowserRouter([
         children: [
           { index: true, element: <JefaturaHome /> },
           { path: "materias", element: <JefaturaMateriasPage /> },
-           { path: "grupos", element: <JefaturaGruposPage /> },
+          { path: "grupos", element: <JefaturaGruposPage /> },
+          { path: "programacion", element: <JefaturaProgramacionPage /> },
+          { path: "programacion/auto", element: <JefaturaProgAutoPage /> },  
+          { path: "programacion/disponibilidad", element: <JefaturaProgDispPage /> },
           { path: "reportes", element: <Reportes /> },
           { path: "bitacora", element: <Bitacora /> },
         ],
@@ -91,7 +100,8 @@ const router = createBrowserRouter([
           { index: true, element: <DocenteHome /> },
           // Placeholders para no romper mientras creas las páginas reales
           { path: "horario", element: <div className="p-6">Mi horario (en construcción)</div> },
-          { path: "asistencia", element: <div className="p-6">Registrar asistencia (en construcción)</div> },
+         
+          { path: "asistencia", element: <DocenteAsistenciaPage /> },
         ],
       },
     ],
@@ -99,6 +109,7 @@ const router = createBrowserRouter([
 
   // Fallback
   { path: "*", element: <Navigate to="/" replace /> },
+  
 ])
 
 export default router

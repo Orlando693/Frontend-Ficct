@@ -1,8 +1,10 @@
 export default function DocenteHome() {
   return (
     <div className="bg-white rounded-2xl shadow p-6">
-      <h2 className="text-xl font-semibold">Resumen</h2>
-      <p className="text-slate-600 mt-1">Bienvenido. Desde aquí podrás ver tu horario y registrar asistencia.</p>
+      <h1 className="text-2xl font-semibold">Bienvenido</h1>
+      <p className="text-slate-600">
+        Use el menú para acceder a <span className="font-medium text-slate-700">Asistencia</span> y registrar su clase.
+      </p>
     </div>
-  )
+  );
 }

@@ -1,7 +1,7 @@
 "use client"
 
 import { NavLink, Outlet } from "react-router-dom"
-import { LayoutDashboard, LogOut, BarChart3, ScrollText, Menu, X, BookOpenText, Layers } from "lucide-react"
+import { LayoutDashboard, LogOut, BarChart3, ScrollText, Menu, X, BookOpenText, Layers, CalendarRange } from "lucide-react"
 import { useState } from "react"
 import { logout } from "../../../features/auth/logout"
 
@@ -72,6 +72,14 @@ export default function JefaturaLayout() {
                 <Layers className="w-5 h-5" />
                 Gestión de Grupos
              </NavLink>
+             <NavLink
+            to="/jefatura/programacion"
+            className={({isActive}) => `${linkBase} ${isActive ? linkActive : ""}`}
+            onClick={() => setIsSidebarOpen(false)}
+            >
+            <CalendarRange className="w-5 h-5" />
+            Programación Académica
+            </NavLink>
           </nav>
 
           <div className="mt-auto pt-6">
