@@ -5,71 +5,118 @@ export default function MateriasTable({
   items,
   onEdit,
   onToggle,
+  loading = false,
 }: {
   items: Materia[];
   onEdit: (m: Materia) => void;
   onToggle: (m: Materia, next: MateriaEstado) => void;
+  loading?: boolean;
 }) {
+  const SkeletonRow = ({ i }: { i: number }) => (
+    <tr key={`skeleton-${i}`} className="border-t">
+      <td className="px-4 py-3">
+        <div className="h-3 w-20 rounded animate-pulse bg-neutral-800/30" />
+      </td>
+      <td className="px-4 py-3">
+        <div className="h-3 w-40 rounded animate-pulse bg-neutral-800/30" />
+      </td>
+      <td className="px-4 py-3">
+        <div className="h-3 w-10 rounded animate-pulse bg-neutral-800/30" />
+      </td>
+      <td className="px-4 py-3">
+        <div className="h-6 w-24 rounded-full animate-pulse bg-neutral-900/40" />
+      </td>
+      <td className="px-4 py-3">
+        <div className="h-8 w-40 rounded-xl animate-pulse bg-neutral-800/30" />
+      </td>
+    </tr>
+  );
+
   return (
-    <div className="bg-white rounded-2xl shadow divide-y">
-      <div className="px-4 py-3 text-sm text-slate-600">
+    <div className="bg-white rounded-2xl shadow border text-slate-800">
+      <div className="px-4 py-3 text-sm text-slate-700">
         {items.length} materia(s)
       </div>
+
       <div className="overflow-x-auto">
         <table className="min-w-full text-sm">
           <thead>
-            <tr className="bg-slate-50 text-slate-700">
-              <th className="text-left px-4 py-2">Código</th>
-              <th className="text-left px-4 py-2">Nombre</th>
-              <th className="text-left px-4 py-2">Créditos</th>
-              <th className="text-left px-4 py-2">Estado</th>
-              <th className="text-left px-4 py-2">Acciones</th>
+            <tr className="bg-slate-800 text-white">
+              <th className="text-left px-4 py-2 font-semibold">Código</th>
+              <th className="text-left px-4 py-2 font-semibold">Nombre</th>
+              <th className="text-left px-4 py-2 font-semibold">Créditos</th>
+              <th className="text-left px-4 py-2 font-semibold">Estado</th>
+              <th className="text-left px-4 py-2 font-semibold">Acciones</th>
             </tr>
           </thead>
-          <tbody>
-            {items.length === 0 && (
+
+          <tbody className="[&>tr:hover]:bg-slate-50">
+            {loading &&
+              Array.from({ length: 5 }).map((_, i) => <SkeletonRow i={i} key={i} />)}
+
+            {!loading && items.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-4 py-6 text-center text-slate-500">
+                <td
+                  colSpan={5}
+                  className="px-4 py-6 text-center text-slate-600"
+                >
                   Sin resultados
                 </td>
               </tr>
             )}
-            {items.map((m) => {
-              const next = m.estado === "ACTIVA" ? "INACTIVA" : "ACTIVA";
-              return (
-                <tr key={m.id} className="border-t">
-                  <td className="px-4 py-2 font-medium">{m.codigo}</td>
-                  <td className="px-4 py-2">{m.nombre}</td>
-                  <td className="px-4 py-2">{m.creditos}</td>
-                  <td className="px-4 py-2">
-                    <span className={`px-2 py-1 rounded-full text-xs ${m.estado === "ACTIVA" ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-600"}`}>
-                      {m.estado}
-                    </span>
-                  </td>
-                  <td className="px-4 py-2">
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => onEdit(m)}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border text-slate-700 hover:bg-slate-50"
-                        title="Editar"
+
+            {!loading &&
+              items.map((m) => {
+                const next: MateriaEstado =
+                  m.estado === "ACTIVA" ? "INACTIVA" : "ACTIVA";
+
+                const toggleLabel = m.estado === "ACTIVA" ? "Inactivar" : "Activar";
+                const ToggleIcon =
+                  m.estado === "ACTIVA" ? ToggleLeft : ToggleRight;
+
+                return (
+                  <tr key={m.id} className="border-t">
+                    <td className="px-4 py-2 font-medium">{m.codigo}</td>
+                    <td className="px-4 py-2">{m.nombre}</td>
+                    <td className="px-4 py-2">{m.creditos}</td>
+                    <td className="px-4 py-2">
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                          m.estado === "ACTIVA"
+                            ? "bg-emerald-100 text-emerald-800"
+                            : "bg-slate-200 text-slate-800"
+                        }`}
                       >
-                        <Pencil className="w-4 h-4" /> Editar
-                      </button>
-                      <button
-                        onClick={() => onToggle(m, next)}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border text-slate-700 hover:bg-slate-50"
-                        title={m.estado === "ACTIVA" ? "Inactivar" : "Activar"}
-                      >
-                        {m.estado === "ACTIVA"
-                          ? <ToggleLeft className="w-4 h-4" />
-                          : <ToggleRight className="w-4 h-4" />}
-                        {m.estado === "ACTIVA" ? "Inactivar" : "Activar"}
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
+                        {m.estado}
+                      </span>
+                    </td>
+                    <td className="px-4 py-2">
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          onClick={() => onEdit(m)}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 text-white hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-400"
+                          title="Editar"
+                        >
+                          <Pencil className="w-4 h-4" /> Editar
+                        </button>
+
+                        <button
+                          onClick={() => onToggle(m, next)}
+                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-white focus:outline-none focus:ring-2 ${
+                            m.estado === "ACTIVA"
+                              ? "bg-amber-700 hover:bg-amber-600 focus:ring-amber-300"
+                              : "bg-emerald-700 hover:bg-emerald-600 focus:ring-emerald-300"
+                          }`}
+                          title={toggleLabel}
+                        >
+                          <ToggleIcon className="w-4 h-4" />
+                          {toggleLabel}
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
           </tbody>
         </table>
       </div>
