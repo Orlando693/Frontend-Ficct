@@ -1,5 +1,5 @@
 import { Loader2 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { GestionDTO, MateriaMiniDTO, Turno } from "./types";
 
 // FormState (interno del modal): con "" para manejar selects vacíos
@@ -9,6 +9,14 @@ type FormState = {
   paralelo: string;
   turno: Turno | "";
   capacidad: number | "";
+};
+
+const emptyForm: FormState = {
+  gestion_id: "",
+  materia_id: "",
+  paralelo: "",
+  turno: "",
+  capacidad: "",
 };
 
 // Payload que el padre recibe (normalizado)
@@ -37,10 +45,13 @@ export default function GrupoModal({
   onSubmit: (values: GrupoSubmitPayload) => void | Promise<void>;
   busy?: boolean;
 }) {
-  // 🔧 Hooks SIEMPRE se llaman (nunca antes de un return)
-  const [form, setForm] = useState<FormState>(
-    initial ?? { gestion_id: "", materia_id: "", paralelo: "", turno: "", capacidad: "" }
-  );
+  const [form, setForm] = useState<FormState>(initial ?? emptyForm);
+
+  useEffect(() => {
+    if (open) {
+      setForm(initial ?? emptyForm);
+    }
+  }, [open, initial]);
 
   const labelCls = "block text-sm text-slate-600";
   const inputCls =
@@ -170,3 +181,4 @@ export default function GrupoModal({
     </div>
   );
 }
+

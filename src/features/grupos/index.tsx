@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { Search, Plus } from "lucide-react";
-import type { Grupo, GrupoEstado, Turno } from "./types";
+import type { GestionDTO, Grupo, GrupoEstado, MateriaMiniDTO, Turno } from "./types";
 import {
   listGrupos, listGestiones, listMateriasActivas,
   createGrupo, updateGrupo, setEstadoGrupo
@@ -11,8 +11,8 @@ import GruposTable from "./GruposTable";
 
 export default function GruposFeature() {
   const [items, setItems] = useState<Grupo[]>([]);
-  const [gestiones, setGestiones] = useState<any[]>([]);
-  const [materias, setMaterias] = useState<any[]>([]);
+  const [gestiones, setGestiones] = useState<GestionDTO[]>([]);
+  const [materias, setMaterias] = useState<MateriaMiniDTO[]>([]);
 
   const [q, setQ] = useState("");
   const [estado, setEstado] = useState<"todos" | GrupoEstado>("todos");
@@ -140,7 +140,7 @@ export default function GruposFeature() {
           className={inputCls}
         >
           <option value="">{/* placeholder */}Gestión</option>
-          {gestiones.map((g: any) => (
+          {gestiones.map((g) => (
             <option key={g.id_gestion} value={g.id_gestion}>{g.anio}-{g.periodo}</option>
           ))}
         </select>
@@ -151,7 +151,7 @@ export default function GruposFeature() {
           className={inputCls}
         >
           <option value="">{/* placeholder */}Materia</option>
-          {materias.map((m: any) => (
+          {materias.map((m) => (
             <option key={m.id_materia} value={m.id_materia}>{m.codigo} · {m.nombre}</option>
           ))}
         </select>
