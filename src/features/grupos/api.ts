@@ -15,9 +15,25 @@ function pickData<T = any>(payload: any): T[] {
   return [];
 }
 
+function fallbackGestiones(): GestionDTO[] {
+  const rows: GestionDTO[] = [];
+  for (let year = 2024; year <= 2026; year++) {
+    for (const periodo of [1, 2]) {
+      rows.push({
+        id_gestion: Number(`${year}${periodo}`),
+        anio: year,
+        periodo,
+      });
+    }
+  }
+  return rows;
+}
+
 export async function listGestiones(): Promise<GestionDTO[]> {
   const json = await apiFetch("/gestiones");
-  return pickData<GestionDTO>(json);
+  const data = pickData<GestionDTO>(json);
+  if (data.length) return data;
+  return fallbackGestiones();
 }
 
 export async function listMateriasActivas(): Promise<MateriaMiniDTO[]> {
@@ -84,4 +100,8 @@ export async function setEstadoGrupo(id: number, estado: GrupoEstado) {
     body: JSON.stringify({ estado }),
   });
   return { data: dtoToModel(json.data as GrupoDTO) };
+}
+
+export async function deleteGrupo(id: number) {
+  return apiFetch(`/grupos/${id}`, { method: "DELETE" });
 }

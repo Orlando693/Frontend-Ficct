@@ -4,7 +4,7 @@ import { Search, Plus } from "lucide-react";
 import type { GestionDTO, Grupo, GrupoEstado, MateriaMiniDTO, Turno } from "./types";
 import {
   listGrupos, listGestiones, listMateriasActivas,
-  createGrupo, updateGrupo, setEstadoGrupo
+  createGrupo, updateGrupo, setEstadoGrupo, deleteGrupo
 } from "./api";
 import GrupoModal from "./GrupoModal";
 import GruposTable from "./GruposTable";
@@ -26,10 +26,9 @@ export default function GruposFeature() {
   const [busy, setBusy] = useState(false);
   const [editing, setEditing] = useState<Grupo | null>(null);
 
-  const labelCls = "block text-sm text-slate-600";
   const inputCls =
-    "rounded-xl border border-slate-200 px-3 py-2 bg-white text-slate-800 " +
-    "placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-300";
+    "rounded-xl border border-slate-300 px-3 py-2 bg-white text-slate-800 " +
+    "placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-400";
 
   async function loadCatalogs() {
     try {
@@ -95,18 +94,33 @@ export default function GruposFeature() {
     }
   }
 
+  async function remove(g: Grupo) {
+    if (typeof window !== "undefined") {
+      const confirmed = window.confirm(`¿Eliminar el grupo ${g.materia_label} - ${g.paralelo}?`);
+      if (!confirmed) return;
+    }
+    try {
+      setError(null);
+      await deleteGrupo(g.id);
+      fetchData();
+    } catch (e: any) {
+      setError(e.message || "No se pudo eliminar el grupo");
+    }
+  }
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 text-slate-800">
       <header className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-semibold">Gestión de Grupos</h2>
-          <p className="text-slate-600 text-sm">
-            Crear, editar, activar/inactivar y listar grupos {loading ? " · Cargando…" : ""}
+          <p className="text-slate-700 text-sm">
+            Crear, editar, activar/inactivar y listar grupos
+            {loading ? " · Cargando…" : ""}
           </p>
         </div>
         <button
           onClick={openCreate}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-400"
         >
           <Plus className="w-4 h-4" />
           Nuevo grupo
@@ -115,7 +129,7 @@ export default function GruposFeature() {
 
       <section className="grid lg:grid-cols-[1fr_220px_220px_220px] gap-3">
         <div className="relative">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
@@ -139,9 +153,11 @@ export default function GruposFeature() {
           onChange={(e) => setGestionId(e.target.value ? Number(e.target.value) : "")}
           className={inputCls}
         >
-          <option value="">{/* placeholder */}Gestión</option>
+          <option value="">Gestión</option>
           {gestiones.map((g) => (
-            <option key={g.id_gestion} value={g.id_gestion}>{g.anio}-{g.periodo}</option>
+            <option key={g.id_gestion} value={g.id_gestion}>
+              {g.anio}-{g.periodo}
+            </option>
           ))}
         </select>
 
@@ -150,17 +166,27 @@ export default function GruposFeature() {
           onChange={(e) => setMateriaId(e.target.value ? Number(e.target.value) : "")}
           className={inputCls}
         >
-          <option value="">{/* placeholder */}Materia</option>
+          <option value="">Materia</option>
           {materias.map((m) => (
-            <option key={m.id_materia} value={m.id_materia}>{m.codigo} · {m.nombre}</option>
+            <option key={m.id_materia} value={m.id_materia}>
+              {m.codigo} · {m.nombre}
+            </option>
           ))}
         </select>
       </section>
 
-      <GruposTable items={items} onEdit={openEdit} onToggle={toggle} />
+      <GruposTable
+        items={items}
+        loading={loading}
+        onEdit={openEdit}
+        onToggle={toggle}
+        onDelete={remove}
+      />
 
       {error && (
-        <div className="p-3 rounded-xl bg-red-50 text-red-700 border border-red-200">{error}</div>
+        <div className="p-3 rounded-xl bg-red-50 text-red-700 border border-red-200">
+          {error}
+        </div>
       )}
 
       <GrupoModal
