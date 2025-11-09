@@ -18,10 +18,10 @@ export default function AulasFeature() {
   const [busy, setBusy] = useState(false);
   const [editing, setEditing] = useState<Aula | null>(null);
 
-  const labelCls = "block text-sm text-slate-600";
+  const labelCls = "block text-sm text-slate-800 font-medium";
   const inputCls =
-    "rounded-xl border border-slate-200 px-3 py-2 bg-white text-slate-800 " +
-    "placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-300";
+    "rounded-xl border border-slate-300 px-3 py-2 bg-white text-slate-900 " +
+    "placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400";
 
   async function fetchData() {
     try {
@@ -36,12 +36,26 @@ export default function AulasFeature() {
     }
   }
 
-  useEffect(() => { fetchData(); }, [q, estado, tipo]);
+  useEffect(() => {
+    fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [q, estado, tipo]);
 
-  function openCreate() { setEditing(null); setOpen(true); }
-  function openEdit(a: Aula) { setEditing(a); setOpen(true); }
+  function openCreate() {
+    setEditing(null);
+    setOpen(true);
+  }
+  function openEdit(a: Aula) {
+    setEditing(a);
+    setOpen(true);
+  }
 
-  async function save(values: { numero: string; tipo: AulaTipo; capacidad: number; piso: number | null; }) {
+  async function save(values: {
+    numero: string;
+    tipo: AulaTipo;
+    capacidad: number;
+    piso: number | null;
+  }) {
     try {
       setBusy(true);
       setError(null);
@@ -62,7 +76,7 @@ export default function AulasFeature() {
   async function toggle(a: Aula, next: AulaEstado) {
     try {
       setError(null);
-      await setEstadoAula(a.id, next); // back debe validar “programación vigente”
+      await setEstadoAula(a.id, next);
       fetchData();
     } catch (e: any) {
       setError(e.message || "No se pudo cambiar el estado");
@@ -73,8 +87,10 @@ export default function AulasFeature() {
     <div className="space-y-4">
       <header className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-semibold">Gestión de Aulas</h2>
-          <p className="text-slate-600 text-sm">
+          <h2 className="text-xl font-semibold text-slate-900">
+            Gestión de Aulas
+          </h2>
+          <p className="text-slate-700 text-sm">
             Crear, editar, activar/inactivar y listar aulas
             {loading ? " · Cargando…" : ""}
           </p>
@@ -90,7 +106,7 @@ export default function AulasFeature() {
 
       <section className="grid lg:grid-cols-[1fr_220px_220px] gap-3">
         <div className="relative">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
@@ -99,6 +115,7 @@ export default function AulasFeature() {
           />
         </div>
 
+        <label className="sr-only">Estado</label>
         <select
           value={estado}
           onChange={(e) => setEstado(e.target.value as any)}
@@ -110,6 +127,7 @@ export default function AulasFeature() {
           <option value="mantenimiento">Mantenimiento</option>
         </select>
 
+        <label className="sr-only">Tipo</label>
         <select
           value={tipo}
           onChange={(e) => setTipo(e.target.value as any)}
@@ -122,10 +140,12 @@ export default function AulasFeature() {
         </select>
       </section>
 
-      <AulasTable items={items} onEdit={openEdit} onToggle={toggle} />
+      <AulasTable items={items} onEdit={openEdit} onToggle={toggle} loading={loading} />
 
       {error && (
-        <div className="p-3 rounded-xl bg-red-50 text-red-700 border border-red-200">{error}</div>
+        <div className="p-3 rounded-xl bg-red-50 text-red-800 border border-red-300">
+          {error}
+        </div>
       )}
 
       <AulaModal

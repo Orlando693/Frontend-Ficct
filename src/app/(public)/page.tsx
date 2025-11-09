@@ -18,9 +18,13 @@ export default function Login() {
 
   // Si ya hay sesión, entra directo
   useEffect(() => {
-    const token =
-      localStorage.getItem("auth_token") || sessionStorage.getItem("auth_token")
-    if (token) {
+    const existingToken =
+      localStorage.getItem("token") ||
+      localStorage.getItem("auth_token") ||
+      sessionStorage.getItem("token") ||
+      sessionStorage.getItem("auth_token")
+
+    if (existingToken) {
       window.location.replace("/admin")
     }
   }, [])
@@ -54,14 +58,30 @@ export default function Login() {
         throw new Error(msg)
       }
 
-      const data = await res.json() // { token, user, abilities }
+      const data = await res.json() // { token, user, abilities } (o variantes)
+
+      // ⬇️ Detectar token en varias respuestas comunes
+      const token: string | undefined =
+        data?.token ??
+        data?.access_token ??
+        data?.plainTextToken ??
+        data?.data?.token ??
+        data?.data?.access_token
+
+      if (!token) {
+        setPassword("")
+        throw new Error("El backend no devolvió token de sesión.")
+      }
 
       // Elegimos dónde guardar según "Recordarme"
       const main = remember ? localStorage : sessionStorage
       const other = remember ? sessionStorage : localStorage
 
       // Guardar sesión completa
-      main.setItem("auth_token", data.token)
+      main.setItem("token", token)           // 👈 clave que usan tus APIs
+      main.setItem("auth_token", token)      // compatibilidad con tu app
+      main.setItem("access_token", token)    // por si algún módulo lo espera
+
       if (data.user) {
         try {
           main.setItem("auth_user", JSON.stringify(data.user))
@@ -76,7 +96,7 @@ export default function Login() {
       }
 
       // Limpiar el otro storage para no mezclar sesiones
-      ;["auth_token", "auth_user", "role", "abilities"].forEach((k) =>
+      ;["token", "auth_token", "access_token", "auth_user", "role", "abilities"].forEach((k) =>
         other.removeItem(k),
       )
 

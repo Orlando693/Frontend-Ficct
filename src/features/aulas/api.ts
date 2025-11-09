@@ -1,18 +1,15 @@
+import { apiFetch } from "../../lib/api";
 import type { Aula, AulaDTO, AulaEstado, AulaTipo } from "./types";
 import { dtoToModel } from "./types";
 
-const BASE = `${import.meta.env.VITE_API_URL}/aulas`;
-
-function authHeaders(extra: Record<string, string> = {}): Record<string, string> {
-  const token = localStorage.getItem("token");
-  return { ...extra, ...(token ? { Authorization: `Bearer ${token}` } : {}) };
+function pickMany<T = AulaDTO>(payload: any): T[] {
+  if (Array.isArray(payload?.data)) return payload.data as T[];
+  if (Array.isArray(payload)) return payload as T[];
+  return [];
 }
 
-async function handle<T>(res: Response): Promise<T> {
-  if (res.ok) return res.json();
-  let data: any = null;
-  try { data = await res.json(); } catch {}
-  throw new Error(data?.message || res.statusText);
+function pickOne(payload: any): AulaDTO {
+  return (payload?.data as AulaDTO) ?? (payload as AulaDTO);
 }
 
 export async function listAulas(params?: {
@@ -25,11 +22,13 @@ export async function listAulas(params?: {
   if (params?.estado && params.estado !== "todas") qs.set("estado", params.estado);
   if (params?.tipo && params.tipo !== "todos") qs.set("tipo", params.tipo);
 
-  const res = await fetch(`${BASE}${qs.toString() ? "?" + qs.toString() : ""}`, {
-    headers: authHeaders(),
-  });
-  const json = await handle<{ data: AulaDTO[] }>(res);
-  return { data: json.data.map(dtoToModel) as Aula[] };
+  const json = await apiFetch(`/aulas${qs.toString() ? `?${qs.toString()}` : ""}`);
+  const rows = pickMany<AulaDTO>(json);
+  return { data: rows.map(dtoToModel) as Aula[] };
+}
+
+function toBackendTipo(tipo: string) {
+  return tipo.toUpperCase();
 }
 
 export async function createAula(payload: {
@@ -38,36 +37,45 @@ export async function createAula(payload: {
   capacidad: number;
   piso?: number | null;
 }) {
-  const res = await fetch(BASE, {
+  const json = await apiFetch("/aulas", {
     method: "POST",
-    headers: authHeaders({ "Content-Type": "application/json" }),
-    body: JSON.stringify(payload),
+    body: JSON.stringify({
+      codigo: payload.numero,
+      tipo: toBackendTipo(payload.tipo),
+      capacidad: payload.capacidad,
+      piso: payload.piso,
+    }),
   });
-  const json = await handle<{ data: AulaDTO }>(res);
-  return { data: dtoToModel(json.data) };
+  return { data: dtoToModel(pickOne(json)) };
 }
 
-export async function updateAula(id: number, payload: {
-  numero: string;
-  tipo: AulaTipo;
-  capacidad: number;
-  piso?: number | null;
-}) {
-  const res = await fetch(`${BASE}/${id}`, {
+export async function updateAula(
+  id: number,
+  payload: {
+    numero: string;
+    tipo: AulaTipo;
+    capacidad: number;
+    piso?: number | null;
+  },
+) {
+  const json = await apiFetch(`/aulas/${id}`, {
     method: "PUT",
-    headers: authHeaders({ "Content-Type": "application/json" }),
-    body: JSON.stringify(payload),
+    body: JSON.stringify({
+      codigo: payload.numero,
+      tipo: toBackendTipo(payload.tipo),
+      capacidad: payload.capacidad,
+      piso: payload.piso,
+    }),
   });
-  const json = await handle<{ data: AulaDTO }>(res);
-  return { data: dtoToModel(json.data) };
+  return { data: dtoToModel(pickOne(json)) };
 }
 
 export async function setEstadoAula(id: number, estado: AulaEstado) {
-  const res = await fetch(`${BASE}/${id}/estado`, {
+  const mapped =
+    estado === "activo" ? "ACTIVO" : estado === "inactivo" ? "INACTIVO" : estado.toUpperCase();
+  const json = await apiFetch(`/aulas/${id}/estado`, {
     method: "PATCH",
-    headers: authHeaders({ "Content-Type": "application/json" }),
-    body: JSON.stringify({ estado }),
+    body: JSON.stringify({ estado: mapped }),
   });
-  const json = await handle<{ data: AulaDTO }>(res);
-  return { data: dtoToModel(json.data) };
+  return { data: dtoToModel(pickOne(json)) };
 }
