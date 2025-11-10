@@ -1,4 +1,4 @@
-import { Loader2, CalendarDays, Clock, MapPin } from "lucide-react";
+import { Loader2, CalendarDays, Clock } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { AulaMiniDTO, DisponibilidadResp } from "./types";
 import { checkDisponibilidad, listAulasActivas } from "./api";
@@ -68,9 +68,7 @@ export default function HorarioModal({
         hora_inicio, hora_fin
       });
       setDispo(data);
-      if (data.disponibles?.length) {
-        setAulas(data.disponibles);
-      }
+      if (data.disponibles?.length) setAulas(data.disponibles);
     } catch (e:any) {
       setError(e.message || "No se pudo consultar disponibilidad.");
     } finally {
@@ -89,17 +87,17 @@ export default function HorarioModal({
     });
   }
 
-  const label = "block text-sm text-slate-600";
+  const label = "block text-sm text-slate-800";
   const input =
-    "w-full rounded-xl border border-slate-200 px-3 py-2 bg-white text-slate-800 " +
-    "placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-300";
+    "w-full rounded-xl border border-slate-300 px-3 py-2 bg-white text-slate-900 " +
+    "placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400";
 
   return (
     <div className="fixed inset-0 z-50 grid place-items-center">
       <div className="absolute inset-0 bg-black/40" onClick={onCancel} />
-      <form onSubmit={submit} className="relative bg-white rounded-2xl shadow-xl w-[95%] max-w-2xl p-6 space-y-4">
-        <h3 className="text-lg font-semibold flex items-center gap-2">
-          <CalendarDays className="w-5 h-5" /> Nuevo bloque / Programación
+      <form onSubmit={submit} className="relative bg-white rounded-2xl shadow-xl w-[95%] max-w-2xl p-6 space-y-4 ring-1 ring-slate-200">
+        <h3 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
+          <CalendarDays className="w-5 h-5 text-slate-800" /> Nuevo bloque / Programación
         </h3>
 
         <div className="grid md:grid-cols-2 gap-4">
@@ -140,7 +138,7 @@ export default function HorarioModal({
           <div className="space-y-2">
             <label className={label}>Hora inicio</label>
             <div className="relative">
-              <Clock className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
+              <Clock className="w-4 h-4 absolute left-3 top-3 text-slate-500" />
               <input
                 type="time"
                 value={form.hora_inicio}
@@ -154,7 +152,7 @@ export default function HorarioModal({
           <div className="space-y-2">
             <label className={label}>Hora fin</label>
             <div className="relative">
-              <Clock className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
+              <Clock className="w-4 h-4 absolute left-3 top-3 text-slate-500" />
               <input
                 type="time"
                 value={form.hora_fin}
@@ -171,33 +169,32 @@ export default function HorarioModal({
             type="button"
             onClick={consultar}
             disabled={checking}
-            className="px-4 py-2 rounded-xl border text-slate-700 hover:bg-slate-50 inline-flex items-center gap-2"
+            className="px-4 py-2 rounded-xl bg-slate-900 text-white inline-flex items-center gap-2 shadow-sm disabled:opacity-50"
           >
-            {checking && <Loader2 className="w-4 h-4 animate-spin" />}
+            {checking && <Loader2 className="w-4 h-4 animate-spin text-white" />}
             Ver disponibilidad
           </button>
 
           {dispo?.conflictos?.length ? (
-            <span className="text-sm text-red-600">
-              {dispo.conflictos.length} conflicto(s) detectado(s)
-            </span>
+            <span className="text-sm text-red-600">{dispo.conflictos.length} conflicto(s) detectado(s)</span>
           ) : dispo ? (
             <span className="text-sm text-green-600">Sin choques (aula/docente/grupo)</span>
           ) : null}
         </div>
 
+        {loading && <div className="h-3 w-40 rounded bg-neutral-900 animate-pulse" />}
         {error && <div className="p-3 rounded-xl bg-red-50 text-red-700 border border-red-200">{error}</div>}
 
         <div className="flex justify-end gap-2 pt-2">
-          <button type="button" onClick={onCancel} className="px-4 py-2 rounded-lg border text-sm">
+          <button type="button" onClick={onCancel} className="px-4 py-2 rounded-lg border text-sm text-slate-800 hover:bg-slate-50">
             Cancelar
           </button>
           <button
             type="submit"
             disabled={busy}
-            className="px-4 py-2 rounded-lg bg-slate-900 text-white text-sm inline-flex items-center gap-2"
+            className="px-4 py-2 rounded-lg bg-slate-900 text-white text-sm inline-flex items-center gap-2 shadow-sm disabled:opacity-50"
           >
-            {busy && <Loader2 className="w-4 h-4 animate-spin" />}
+            {busy && <Loader2 className="w-4 h-4 animate-spin text-white" />}
             Guardar
           </button>
         </div>

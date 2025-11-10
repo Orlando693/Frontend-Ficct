@@ -42,7 +42,9 @@ export async function listHorarios(params: { gestion_id: number; grupo_id?: numb
   q.set("gestion_id", String(params.gestion_id));
   if (params.grupo_id) q.set("grupo_id", String(params.grupo_id));
   const res = await fetch(`${API}/horarios?${q.toString()}`, { headers: authHeaders() });
-  return handle<{ data: HorarioDTO[] }>(res);
+  const json = await handle<any>(res);
+  const rows = Array.isArray(json?.data) ? json.data : Array.isArray(json) ? json : [];
+  return { data: rows as HorarioDTO[] };
 }
 
 export async function createHorario(payload: {

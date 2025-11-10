@@ -10,11 +10,22 @@ import type { Gestion, GestionDTO } from "../parametros/types";
 import { dtoToGestion } from "../parametros/types";
 import ProgramacionTabs from "./Tabs";
 
-
-const label = "block text-sm text-slate-600";
+const label = "block text-sm text-slate-800";
 const input =
-  "rounded-xl border border-slate-200 px-3 py-2 bg-white text-slate-800 " +
-  "placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-300";
+  "rounded-xl border border-slate-300 px-3 py-2 bg-white text-slate-900 " +
+  "placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400";
+
+function SkeletonRow() {
+  return (
+    <tr className="border-b border-slate-200">
+      {[...Array(5)].map((_, i) => (
+        <td key={i} className="px-4 py-3">
+          <div className="h-4 w-full max-w-[160px] rounded bg-neutral-900 animate-pulse" />
+        </td>
+      ))}
+    </tr>
+  );
+}
 
 export default function ProgramacionAcademica() {
   const [gestiones, setGestiones] = useState<Gestion[]>([]);
@@ -28,7 +39,6 @@ export default function ProgramacionAcademica() {
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string|null>(null);
 
-  // 👇 tipo local compatible con el FormState de HorarioModal (mismas keys y unions)
   type ModalFormValues = {
     dia_semana: number | "";
     hora_inicio: string;
@@ -36,7 +46,6 @@ export default function ProgramacionAcademica() {
     aula_id: number | "";
   };
 
-  // Cargar gestiones
   useEffect(() => {
     (async () => {
       try {
@@ -52,7 +61,6 @@ export default function ProgramacionAcademica() {
     })();
   }, []);
 
-  // Cargar grupos al cambiar gestión
   useEffect(() => {
     (async () => {
       setGrupos([]); setGrupoId("");
@@ -70,7 +78,6 @@ export default function ProgramacionAcademica() {
     })();
   }, [gestionId]);
 
-  // Cargar horarios al elegir grupo
   useEffect(() => {
     (async () => {
       setItems([]);
@@ -90,13 +97,10 @@ export default function ProgramacionAcademica() {
     })();
   }, [gestionId, grupoId]);
 
-  // ✅ firma compatible con HorarioModal: (values: Required<FormState>) => void|Promise<void>
   async function handleCreate(values: Required<ModalFormValues>) {
     if (typeof grupoId !== "number") return;
     try {
       setBusy(true); setError(null);
-
-      // normalizar a números seguros
       const payload = {
         grupo_id: Number(grupoId),
         aula_id: Number(values.aula_id),
@@ -104,10 +108,7 @@ export default function ProgramacionAcademica() {
         hora_inicio: values.hora_inicio,
         hora_fin: values.hora_fin,
       };
-
       await createHorario(payload);
-
-      // refrescar tabla
       const { data } = await listHorarios({
         gestion_id: Number(gestionId),
         grupo_id: Number(grupoId)
@@ -136,17 +137,18 @@ export default function ProgramacionAcademica() {
 
   return (
     <div className="space-y-5">
-        <ProgramacionTabs />
+      <ProgramacionTabs />
+
       <header>
-        <h1 className="text-2xl font-semibold">Programación Académica</h1>
-        <p className="text-slate-600 text-sm">
+        <h1 className="text-2xl font-semibold text-slate-900">Programación Académica</h1>
+        <p className="text-slate-700 text-sm">
           Crea y edita bloques (día/hora) asignando aula disponible sin choques (aula/docente/grupo).
           {loading ? " · Cargando…" : ""}
         </p>
       </header>
 
       {/* Filtros */}
-      <section className="bg-white rounded-2xl shadow p-4">
+      <section className="bg-white rounded-2xl shadow p-4 ring-1 ring-slate-200">
         <div className="grid md:grid-cols-3 gap-4">
           <div className="space-y-2">
             <label className={label}>Gestión</label>
@@ -183,31 +185,41 @@ export default function ProgramacionAcademica() {
           <button
             onClick={()=>setOpen(true)}
             disabled={typeof gestionId !== "number" || typeof grupoId !== "number"}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800 disabled:opacity-50"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800 disabled:opacity-50 shadow-sm"
           >
-            <Plus className="w-4 h-4" /> Nuevo bloque
+            <Plus className="w-4 h-4 text-white" /> Nuevo bloque
           </button>
         </div>
       </section>
 
-      {/* Tabla de programación */}
-      <section className="bg-white rounded-2xl shadow overflow-x-auto">
-        <table className="min-w-full text-sm">
-          <thead>
-            <tr className="bg-slate-50 text-slate-700">
-              <th className="text-left px-4 py-2">Día</th>
-              <th className="text-left px-4 py-2">Inicio</th>
-              <th className="text-left px-4 py-2">Fin</th>
-              <th className="text-left px-4 py-2">Aula</th>
-              <th className="text-left px-4 py-2">Acciones</th>
+      {/* Tabla de programación (alto contraste) */}
+      <section className="bg-white rounded-2xl shadow overflow-x-auto ring-1 ring-slate-200">
+        <table className="min-w-full text-sm text-slate-900">
+          <thead className="bg-slate-900 text-white sticky top-0 z-10">
+            <tr>
+              <th className="text-left px-4 py-2 font-semibold">Día</th>
+              <th className="text-left px-4 py-2 font-semibold">Inicio</th>
+              <th className="text-left px-4 py-2 font-semibold">Fin</th>
+              <th className="text-left px-4 py-2 font-semibold">Aula</th>
+              <th className="text-left px-4 py-2 font-semibold">Acciones</th>
             </tr>
           </thead>
-          <tbody>
-            {items.length === 0 && (
-              <tr><td colSpan={5} className="px-4 py-6 text-center text-slate-500">Sin bloques programados</td></tr>
+          <tbody className="divide-y divide-slate-200">
+            {loading && (<>
+              <SkeletonRow/><SkeletonRow/><SkeletonRow/>
+            </>)}
+
+            {!loading && items.length === 0 && (
+              <tr className="bg-white">
+                <td colSpan={5} className="px-4 py-6 text-center text-slate-800">Sin bloques programados</td>
+              </tr>
             )}
-            {items.map(h => (
-              <tr key={h.id_horario} className="border-t">
+
+            {!loading && items.map((h, idx) => (
+              <tr
+                key={h.id_horario}
+                className={`${idx % 2 === 0 ? "bg-white" : "bg-slate-50"} hover:bg-slate-100 transition-colors`}
+              >
                 <td className="px-4 py-2">
                   {["","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado","Domingo"][h.dia_semana]}
                 </td>
@@ -217,10 +229,10 @@ export default function ProgramacionAcademica() {
                 <td className="px-4 py-2">
                   <button
                     onClick={()=>handleDelete(h.id_horario)}
-                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border text-red-600 hover:bg-red-50"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-600 text-white hover:bg-rose-700 focus:ring-2 focus:ring-rose-600/40 shadow-sm"
                     title="Eliminar"
                   >
-                    <Trash2 className="w-4 h-4" /> Eliminar
+                    <Trash2 className="w-4 h-4 text-white" /> Eliminar
                   </button>
                 </td>
               </tr>
@@ -229,7 +241,7 @@ export default function ProgramacionAcademica() {
         </table>
 
         {busy && (
-          <div className="p-3 text-sm text-slate-600 flex items-center gap-2">
+          <div className="p-3 text-sm text-slate-700 flex items-center gap-2">
             <Loader2 className="w-4 h-4 animate-spin" /> Procesando…
           </div>
         )}
