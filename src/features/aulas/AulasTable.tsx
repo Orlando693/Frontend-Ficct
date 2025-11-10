@@ -64,6 +64,25 @@ export default function AulasTable({
               items.map((a) => {
                 const next: AulaEstado =
                   a.estado === "activo" ? "inactivo" : "activo";
+
+                const isActivo = a.estado === "activo";
+                const isInactivo = a.estado === "inactivo";
+                const isMantenimiento = a.estado === "mantenimiento";
+
+                const editBtnCls =
+                  "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg " +
+                  "bg-indigo-600 text-white hover:bg-indigo-700 " +
+                  "focus:outline-none focus:ring-2 focus:ring-indigo-600/50 shadow-sm";
+
+                const toggleBase =
+                  "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg " +
+                  "text-white focus:outline-none focus:ring-2 shadow-sm";
+                const toggleColor = isActivo
+                  ? "bg-rose-600 hover:bg-rose-700 focus:ring-rose-600/50"
+                  : "bg-emerald-600 hover:bg-emerald-700 focus:ring-emerald-600/50";
+                const toggleDisabled =
+                  "bg-slate-400 cursor-not-allowed opacity-70 hover:bg-slate-400 focus:ring-0";
+
                 return (
                   <tr
                     key={a.id}
@@ -78,9 +97,9 @@ export default function AulasTable({
                     <td className="px-4 py-2">
                       <span
                         className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          a.estado === "activo"
+                          isActivo
                             ? "bg-emerald-100 text-emerald-800"
-                            : a.estado === "inactivo"
+                            : isInactivo
                             ? "bg-slate-200 text-slate-800"
                             : "bg-amber-100 text-amber-800"
                         }`}
@@ -92,24 +111,29 @@ export default function AulasTable({
                       <div className="flex flex-wrap gap-2">
                         <button
                           onClick={() => onEdit(a)}
-                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-300 text-slate-900 hover:bg-slate-100"
+                          className={editBtnCls}
                           title="Editar"
+                          aria-label="Editar"
                         >
                           <Pencil className="w-4 h-4" />
                           Editar
                         </button>
+
                         <button
                           onClick={() => onToggle(a, next)}
-                          disabled={a.estado === "mantenimiento"}
-                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-300 text-slate-900 hover:bg-slate-100 disabled:opacity-60"
-                          title={a.estado === "activo" ? "Inactivar" : "Activar"}
+                          disabled={isMantenimiento}
+                          className={`${toggleBase} ${
+                            isMantenimiento ? toggleDisabled : toggleColor
+                          }`}
+                          title={isActivo ? "Inactivar" : "Activar"}
+                          aria-label={isActivo ? "Inactivar" : "Activar"}
                         >
-                          {a.estado === "activo" ? (
+                          {isActivo ? (
                             <ToggleLeft className="w-4 h-4" />
                           ) : (
                             <ToggleRight className="w-4 h-4" />
                           )}
-                          {a.estado === "activo" ? "Inactivar" : "Activar"}
+                          {isActivo ? "Inactivar" : "Activar"}
                         </button>
                       </div>
                     </td>

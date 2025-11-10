@@ -2,17 +2,17 @@
 import { useEffect, useMemo, useState } from "react";
 import { Upload, FileDown, Eye, CheckCircle2, AlertTriangle, XCircle, Loader2 } from "lucide-react";
 import { listGestiones } from "./api.gestiones";
-import type { Gestion, GestionDTO } from "./types"; // 👈 importo también GestionDTO
+import type { Gestion, GestionDTO } from "./types";
 import { dtoToGestion } from "./types";
 import { downloadPlantillaURL, serverPreview, serverConfirm } from "./api.importar";
 import type { PreviewRow, PreviewSummary } from "./types.importar";
 
-const labelCls = "block text-sm text-slate-600";
+const labelCls = "block text-sm text-slate-800";
 const inputCls =
-  "rounded-xl border border-slate-200 px-3 py-2 bg-white text-slate-800 " +
-  "placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-300";
+  "rounded-xl border border-slate-300 px-3 py-2 bg-white text-slate-900 " +
+  "placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400";
 
-// columnas mínimas del CSV (la gestión se elige en UI)
+// columnas mínimas del CSV
 const REQUIRED_COLS = ["carrera_sigla", "materia_codigo", "paralelo", "turno", "capacidad"] as const;
 type MinCols = typeof REQUIRED_COLS[number];
 
@@ -34,7 +34,6 @@ export default function ImportarOferta() {
       try {
         setLoading(true);
         const { data } = await listGestiones();
-        // 👇 Fuerzo correctamente el tipo de data a DTO para usar dtoToGestion
         const dtos = (data as unknown as GestionDTO[]);
         setGestiones(dtos.map(dtoToGestion));
       } catch (e:any) {
@@ -47,15 +46,11 @@ export default function ImportarOferta() {
 
   const plantillaCSV = useMemo(() => {
     const header = REQUIRED_COLS.join(",");
-    const sample = [
-      "SIS,INF-121,A,manana,40",
-      "SIS,INF-131,B,tarde,35",
-    ].join("\n");
+    const sample = ["SIS,INF-121,A,manana,40","SIS,INF-131,B,tarde,35"].join("\n");
     return header + "\n" + sample + "\n";
   }, []);
 
   function downloadPlantillaLocal() {
-    // si luego usas plantilla por backend, cambia a open(downloadPlantillaURL('csv')!)
     const blob = new Blob([plantillaCSV], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -104,7 +99,6 @@ export default function ImportarOferta() {
         status = "error"; message = "capacidad debe ser > 0.";
       }
 
-      // 👇 sin ambigüedad de tipos
       switch (status) {
         case "ok": ok++; break;
         case "warn": warn++; break;
@@ -158,24 +152,24 @@ export default function ImportarOferta() {
   return (
     <div className="space-y-5">
       <header>
-        <h2 className="text-xl font-semibold">Importar maestro de oferta</h2>
-        <p className="text-slate-600 text-sm">CSV/XLSX con columnas mínimas. Vista previa antes de confirmar.</p>
+        <h2 className="text-xl font-semibold text-slate-900">Importar maestro de oferta</h2>
+        <p className="text-slate-700 text-sm">CSV/XLSX con columnas mínimas. Vista previa antes de confirmar.</p>
       </header>
 
       {/* Guía + plantilla */}
       <section className="bg-white rounded-2xl shadow p-4 space-y-3">
-        <h3 className="font-semibold text-slate-800 flex items-center gap-2">
-          <FileDown className="w-4 h-4" /> Plantilla y columnas mínimas
+        <h3 className="font-semibold text-slate-900 flex items-center gap-2">
+          <FileDown className="w-4 h-4 text-slate-800" /> Plantilla y columnas mínimas
         </h3>
-        <ul className="list-disc pl-5 text-sm text-slate-700">
-          <li><span className="font-medium">Columnas:</span> <code className="text-slate-600">carrera_sigla, materia_codigo, paralelo, turno, capacidad</code></li>
-          <li><span className="font-medium">turno:</span> <code className="text-slate-600">manana | tarde | noche</code></li>
+        <ul className="list-disc pl-5 text-sm text-slate-800">
+          <li><span className="font-medium">Columnas:</span> <code className="text-slate-800">carrera_sigla, materia_codigo, paralelo, turno, capacidad</code></li>
+          <li><span className="font-medium">turno:</span> <code className="text-slate-800">manana | tarde | noche</code></li>
           <li><span className="font-medium">capacidad:</span> entero &gt; 0</li>
           <li>La <span className="font-medium">gestión</span> se selecciona aquí (no va en el archivo).</li>
         </ul>
         <div className="flex gap-2">
-          <button onClick={downloadPlantillaLocal} className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-50">
-            <FileDown className="w-4 h-4" /> Descargar plantilla CSV
+          <button onClick={downloadPlantillaLocal} className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-300 text-slate-900 hover:bg-slate-100">
+            <FileDown className="w-4 h-4 text-slate-800" /> Descargar plantilla CSV
           </button>
         </div>
       </section>
@@ -184,19 +178,23 @@ export default function ImportarOferta() {
       <section className="grid md:grid-cols-3 gap-4">
         <div className="space-y-2">
           <label className={labelCls}>Gestión</label>
-          <select
-            value={gestionId}
-            onChange={(e)=>setGestionId(e.target.value===""? "": Number(e.target.value))}
-            className={inputCls}
-          >
-            <option value="">— Selecciona —</option>
-            {gestiones.map(g => <option key={g.id} value={g.id}>{g.label}</option>)}
-          </select>
+          {loading ? (
+            <div className="h-10 rounded bg-neutral-900 animate-pulse" />
+          ) : (
+            <select
+              value={gestionId}
+              onChange={(e)=>setGestionId(e.target.value===""? "": Number(e.target.value))}
+              className={inputCls}
+            >
+              <option value="">— Selecciona —</option>
+              {gestiones.map(g => <option key={g.id} value={g.id}>{g.label}</option>)}
+            </select>
+          )}
         </div>
         <div className="space-y-2 md:col-span-2">
           <label className={labelCls}>Archivo (CSV/XLSX)</label>
           <input type="file" accept=".csv,.xlsx" onChange={onFileChange} className={inputCls} placeholder="Selecciona tu archivo…" />
-          <p className="text-xs text-slate-500">Para XLSX, la vista previa se genera en el servidor.</p>
+          <p className="text-xs text-slate-600">Para XLSX, la vista previa se genera en el servidor.</p>
         </div>
       </section>
 
@@ -205,26 +203,26 @@ export default function ImportarOferta() {
         <button
           onClick={doPreview}
           disabled={busy || !file || typeof gestionId !== "number"}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-300 text-slate-900 hover:bg-slate-100 disabled:opacity-50"
         >
-          <Eye className="w-4 h-4" /> Previsualizar
+          <Eye className="w-4 h-4 text-slate-800" /> Previsualizar
         </button>
         <button
           onClick={doConfirm}
           disabled={busy || !file || totals.total === 0 || totals.error > 0 || typeof gestionId !== "number"}
           className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800 disabled:opacity-50"
         >
-          {busy && <Loader2 className="w-4 h-4 animate-spin" />} <CheckCircle2 className="w-4 h-4" /> Confirmar importación
+          {busy && <Loader2 className="w-4 h-4 animate-spin text-white" />} <CheckCircle2 className="w-4 h-4 text-white" /> Confirmar importación
         </button>
       </div>
 
       {/* Resumen */}
       {(totals.total > 0) && (
         <div className="flex items-center gap-4 text-sm">
-          <span className="inline-flex items-center gap-1 text-slate-700"><Eye className="w-4 h-4" /> {totals.total} filas</span>
-          <span className="inline-flex items-center gap-1 text-green-600"><CheckCircle2 className="w-4 h-4" /> OK: {totals.ok}</span>
-          <span className="inline-flex items-center gap-1 text-amber-600"><AlertTriangle className="w-4 h-4" /> Advertencias: {totals.warn}</span>
-          <span className="inline-flex items-center gap-1 text-red-600"><XCircle className="w-4 h-4" /> Errores: {totals.error}</span>
+          <span className="inline-flex items-center gap-1 text-slate-800"><Eye className="w-4 h-4 text-slate-800" /> {totals.total} filas</span>
+          <span className="inline-flex items-center gap-1 text-green-700"><CheckCircle2 className="w-4 h-4 text-green-700" /> OK: {totals.ok}</span>
+          <span className="inline-flex items-center gap-1 text-amber-700"><AlertTriangle className="w-4 h-4 text-amber-700" /> Advertencias: {totals.warn}</span>
+          <span className="inline-flex items-center gap-1 text-red-700"><XCircle className="w-4 h-4 text-red-700" /> Errores: {totals.error}</span>
         </div>
       )}
 
@@ -233,24 +231,24 @@ export default function ImportarOferta() {
         <div className="bg-white rounded-2xl shadow overflow-x-auto">
           <table className="min-w-full text-sm">
             <thead>
-              <tr className="bg-slate-50 text-slate-700">
-                <th className="text-left px-4 py-2">#</th>
-                {REQUIRED_COLS.map(c => <th key={c} className="text-left px-4 py-2">{c}</th>)}
-                <th className="text-left px-4 py-2">Estado</th>
-                <th className="text-left px-4 py-2">Detalle</th>
+              <tr className="bg-slate-100 text-slate-900">
+                <th className="text-left px-4 py-2 font-semibold">#</th>
+                {REQUIRED_COLS.map(c => <th key={c} className="text-left px-4 py-2 font-semibold">{c}</th>)}
+                <th className="text-left px-4 py-2 font-semibold">Estado</th>
+                <th className="text-left px-4 py-2 font-semibold">Detalle</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="text-slate-800">
               {rows.map(r => (
                 <tr key={r.rowNum} className="border-t">
                   <td className="px-4 py-2">{r.rowNum}</td>
                   {REQUIRED_COLS.map(c => <td key={c} className="px-4 py-2">{r.data[c] ?? ""}</td>)}
                   <td className="px-4 py-2">
-                    {r.status === "ok"    && <span className="text-green-600">OK</span>}
-                    {r.status === "warn"  && <span className="text-amber-600">ADVERTENCIA</span>}
-                    {r.status === "error" && <span className="text-red-600">ERROR</span>}
+                    {r.status === "ok"    && <span className="text-green-700">OK</span>}
+                    {r.status === "warn"  && <span className="text-amber-700">ADVERTENCIA</span>}
+                    {r.status === "error" && <span className="text-red-700">ERROR</span>}
                   </td>
-                  <td className="px-4 py-2 text-slate-600">{r.message ?? ""}</td>
+                  <td className="px-4 py-2 text-slate-700">{r.message ?? ""}</td>
                 </tr>
               ))}
             </tbody>

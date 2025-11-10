@@ -4,8 +4,20 @@ import { listGestiones, createGestion, updateGestion } from "./api.gestiones";
 import type { Gestion } from "./types";
 
 const inputCls =
-  "rounded-xl border border-slate-200 px-3 py-2 bg-white text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-300";
-const labelCls = "block text-sm text-slate-600";
+  "rounded-xl border border-slate-300 px-3 py-2 bg-white text-slate-900 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400";
+const labelCls = "block text-sm text-slate-800";
+
+function SkeletonRow() {
+  return (
+    <tr className="border-t">
+      {[...Array(4)].map((_, i) => (
+        <td key={i} className="px-4 py-3">
+          <div className="h-4 w-full max-w-[160px] rounded bg-neutral-900 animate-pulse" />
+        </td>
+      ))}
+    </tr>
+  );
+}
 
 export default function Periodos() {
   const [items, setItems] = useState<Gestion[]>([]);
@@ -18,7 +30,8 @@ export default function Periodos() {
   const [editing, setEditing] = useState<Gestion | null>(null);
 
   async function fetchData() {
-    try { setLoading(true); setError(null);
+    try {
+      setLoading(true); setError(null);
       const res = await listGestiones(q.trim() || undefined);
       setItems(res.data);
     } catch (e:any) {
@@ -27,7 +40,7 @@ export default function Periodos() {
       setLoading(false);
     }
   }
-  useEffect(()=>{ fetchData(); }, [q]);
+  useEffect(()=>{ fetchData(); /* eslint-disable-next-line */ }, [q]);
 
   function openCreate(){ setEditing(null); setOpen(true); }
   function openEdit(g: Gestion){ setEditing(g); setOpen(true); }
@@ -49,22 +62,23 @@ export default function Periodos() {
     <div className="space-y-4">
       <header className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-semibold">Periodos académicos</h2>
-          <p className="text-slate-600 text-sm">
-            Define año, periodo y fechas {loading ? " · Cargando…" : ""}
+          <h2 className="text-xl font-semibold text-slate-900">Periodos académicos</h2>
+          <p className="text-slate-700 text-sm">
+            Define año, periodo y fechas{loading ? " · Cargando…" : ""}
           </p>
         </div>
         <button
           onClick={openCreate}
           className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800"
         >
-          <Plus className="w-4 h-4" />
+          <Plus className="w-4 h-4 text-white" />
           Nuevo periodo
         </button>
       </header>
 
+      {/* Buscador */}
       <div className="relative">
-        <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+        <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-600" />
         <input
           value={q}
           onChange={(e)=>setQ(e.target.value)}
@@ -73,41 +87,59 @@ export default function Periodos() {
         />
       </div>
 
-      <div className="bg-white rounded-2xl shadow divide-y">
-        <div className="px-4 py-3 text-sm text-slate-600">{items.length} periodo(s)</div>
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-sm">
-            <thead>
-              <tr className="bg-slate-50 text-slate-700">
-                <th className="text-left px-4 py-2">Año</th>
-                <th className="text-left px-4 py-2">Periodo</th>
-                <th className="text-left px-4 py-2">Rango</th>
-                <th className="text-left px-4 py-2">Acciones</th>
+      {/* Tabla de alto contraste */}
+      <div className="rounded-2xl overflow-hidden ring-1 ring-slate-300 shadow-sm bg-white">
+        <div className="px-4 py-3 text-sm text-slate-800 bg-slate-50 border-b border-slate-200">
+          {items.length} periodo(s)
+        </div>
+
+        <div className="max-h-[65vh] overflow-auto">
+          <table className="min-w-full text-sm text-slate-900">
+            <thead className="bg-slate-900 text-white sticky top-0 z-10">
+              <tr>
+                <th className="text-left px-4 py-2 font-semibold">Año</th>
+                <th className="text-left px-4 py-2 font-semibold">Periodo</th>
+                <th className="text-left px-4 py-2 font-semibold">Rango</th>
+                <th className="text-left px-4 py-2 font-semibold">Acciones</th>
               </tr>
             </thead>
-            <tbody>
-              {items.length===0 && (
-                <tr>
-                  <td colSpan={4} className="px-4 py-6 text-center text-slate-500">Sin resultados</td>
+
+            <tbody className="divide-y divide-slate-200">
+              {loading && (<>
+                <SkeletonRow/><SkeletonRow/><SkeletonRow/><SkeletonRow/>
+              </>)}
+
+              {!loading && items.length===0 && (
+                <tr className="bg-white">
+                  <td colSpan={4} className="px-4 py-6 text-center text-slate-800">
+                    Sin resultados
+                  </td>
                 </tr>
               )}
-              {items.map(g=>(
-                <tr key={g.id} className="border-t">
-                  <td className="px-4 py-2">{g.anio}</td>
-                  <td className="px-4 py-2">{g.periodo}</td>
-                  <td className="px-4 py-2">{g.fecha_ini} → {g.fecha_fin}</td>
-                  <td className="px-4 py-2">
+
+              {!loading && items.map((g, idx)=>(
+                <tr
+                  key={g.id}
+                  className={`hover:bg-slate-100 transition-colors ${
+                    idx % 2 === 0 ? "bg-white" : "bg-slate-50"
+                  }`}
+                >
+                  <td className="px-4 py-3">{g.anio}</td>
+                  <td className="px-4 py-3">{g.periodo}</td>
+                  <td className="px-4 py-3">{g.fecha_ini} → {g.fecha_fin}</td>
+                  <td className="px-4 py-3">
                     <button
                       onClick={()=>openEdit(g)}
-                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border text-slate-700 hover:bg-slate-50"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-600/50"
                       title="Editar"
                     >
-                      <Pencil className="w-4 h-4" /> Editar
+                      <Pencil className="w-4 h-4 text-white" /> Editar
                     </button>
                   </td>
                 </tr>
               ))}
             </tbody>
+
           </table>
         </div>
       </div>
@@ -127,7 +159,7 @@ export default function Periodos() {
   );
 }
 
-/** Modal embebido (hooks siempre antes del guard) */
+/** Modal embebido */
 function GestionModal({
   open, initial, onCancel, onSubmit, busy=false,
 }:{
@@ -142,10 +174,9 @@ function GestionModal({
   const [fechaIni, setFechaIni] = useState<string>(initial?.fecha_ini ?? "");
   const [fechaFin, setFechaFin] = useState<string>(initial?.fecha_fin ?? "");
 
-  const label = "block text-sm text-slate-600";
+  const label = "block text-sm text-slate-800";
   const input =
-    "w-full rounded-xl border border-slate-200 px-3 py-2 bg-white text-slate-800 " +
-    "placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-300";
+    "w-full rounded-xl border border-slate-300 px-3 py-2 bg-white text-slate-900 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400";
 
   if (!open) return null;
 
@@ -165,7 +196,7 @@ function GestionModal({
     <div className="fixed inset-0 z-50 grid place-items-center">
       <div className="absolute inset-0 bg-black/40" onClick={onCancel}/>
       <form onSubmit={submit} className="relative bg-white rounded-2xl shadow-xl w-[95%] max-w-lg p-6 space-y-4">
-        <h3 className="text-lg font-semibold text-slate-800">
+        <h3 className="text-lg font-semibold text-slate-900">
           {initial ? "Editar periodo" : "Nuevo periodo"}
         </h3>
 
@@ -216,7 +247,7 @@ function GestionModal({
         <div className="flex justify-end gap-2 pt-2">
           <button
             type="button" onClick={onCancel}
-            className="px-4 py-2 rounded-lg border border-slate-300 text-sm text-slate-700 hover:bg-slate-50"
+            className="px-4 py-2 rounded-lg border border-slate-300 text-sm text-slate-800 hover:bg-slate-100"
           >
             Cancelar
           </button>
@@ -224,7 +255,7 @@ function GestionModal({
             type="submit" disabled={busy}
             className="px-4 py-2 rounded-lg bg-slate-900 text-white text-sm inline-flex items-center gap-2"
           >
-            {busy && <Loader2 className="w-4 h-4 animate-spin" />} Guardar
+            {busy && <Loader2 className="w-4 h-4 animate-spin text-white" />} Guardar
           </button>
         </div>
       </form>

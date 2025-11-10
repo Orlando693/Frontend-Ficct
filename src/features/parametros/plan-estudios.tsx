@@ -8,10 +8,25 @@ import {
 import type { CarreraMiniDTO, MateriaMiniDTO, PlanRecord, PlanDTO } from "./types";
 import { dtoToPlan } from "./types";
 
-const label = "block text-sm text-slate-600";
+const label = "block text-sm text-slate-800";
 const input =
-  "w-full rounded-xl border border-slate-200 px-3 py-2 bg-white text-slate-800 " +
-  "placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-300";
+  "w-full rounded-xl border border-slate-300 px-3 py-2 bg-white text-slate-900 " +
+  "placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400";
+
+function SkeletonBar({w="w-40"}:{w?:string}) {
+  return <div className={`h-4 ${w} rounded bg-neutral-900 animate-pulse`} />;
+}
+function SkeletonRow() {
+  return (
+    <tr className="border-t">
+      {[...Array(7)].map((_, i) => (
+        <td key={i} className="px-4 py-3">
+          <div className="h-4 w-full max-w-[160px] rounded bg-neutral-900 animate-pulse" />
+        </td>
+      ))}
+    </tr>
+  );
+}
 
 export default function PlanEstudios() {
   const [carreras, setCarreras] = useState<CarreraMiniDTO[]>([]);
@@ -77,19 +92,17 @@ export default function PlanEstudios() {
         typeof materiaId !== "number" ||
         plan === "" || semestre === "" || teo === "" || pra === ""
       ) throw new Error("Completa todos los campos.");
-      const res = await createPlan({
+      await createPlan({
         carrera_id: carreraId,
-        materia_id: materiaId,
+        materia_id: Number(materiaId),
         plan: Number(plan),
         semestre: Number(semestre),
         tipo,
         carga_teo: Number(teo),
         carga_pra: Number(pra),
       });
-      // refrescar
       const { data } = await listPlanByCarrera(carreraId);
-      setItems(data.map(p => dtoToPlan(p, materiasMap.get(p.materia_id))));
-      // limpiar form rápido
+      setItems(data.map((p: PlanDTO) => dtoToPlan(p, materiasMap.get(p.materia_id))));
       setMateriaId(""); setPlan(""); setSemestre(""); setTipo("obligatoria"); setTeo(""); setPra("");
     } catch (e:any) {
       setError(e.message || "No se pudo asociar la materia");
@@ -114,8 +127,8 @@ export default function PlanEstudios() {
   return (
     <div className="space-y-4">
       <header>
-        <h2 className="text-xl font-semibold">Plan de estudios (asignar materias a carreras)</h2>
-        <p className="text-slate-600 text-sm">
+        <h2 className="text-xl font-semibold text-slate-900">Plan de estudios (asignar materias a carreras)</h2>
+        <p className="text-slate-700 text-sm">
           Define plan/semestre/tipo y cargas. {loading ? " · Cargando…" : ""}
         </p>
       </header>
@@ -123,41 +136,48 @@ export default function PlanEstudios() {
       <section className="grid sm:grid-cols-3 gap-4">
         <div className="space-y-2">
           <label className={label}>Carrera</label>
-          <select
-            value={carreraId}
-            onChange={(e)=>setCarreraId(e.target.value===""? "": Number(e.target.value))}
-            className={input}
-          >
-            <option value="">— Selecciona —</option>
-            {carreras.map(c=>(
-              <option key={c.id_carrera} value={c.id_carrera}>
-                {c.sigla} · {c.nombre}
-              </option>
-            ))}
-          </select>
+          {loading ? (
+            <div className="h-10 rounded-xl bg-neutral-900 animate-pulse" />
+          ) : (
+            <select
+              value={carreraId}
+              onChange={(e)=>setCarreraId(e.target.value===""? "": Number(e.target.value))}
+              className={input}
+            >
+              <option value="">— Selecciona —</option>
+              {carreras.map(c=>(
+                <option key={c.id_carrera} value={c.id_carrera}>
+                  {c.sigla} · {c.nombre}
+                </option>
+              ))}
+            </select>
+          )}
         </div>
       </section>
 
       {typeof carreraId === "number" && (
         <>
-          {/* Alta rápida */}
           <section className="bg-white rounded-2xl shadow p-4 space-y-4">
-            <h3 className="font-semibold text-slate-800">Asociar materia</h3>
+            <h3 className="font-semibold text-slate-900">Asociar materia</h3>
             <div className="grid md:grid-cols-5 gap-3">
               <div className="space-y-2">
                 <label className={label}>Materia</label>
-                <select
-                  value={materiaId}
-                  onChange={(e)=>setMateriaId(e.target.value===""? "": Number(e.target.value))}
-                  className={input}
-                >
-                  <option value="">— Selecciona —</option>
-                  {materias.map(m=>(
-                    <option key={m.id_materia} value={m.id_materia}>
-                      {m.codigo} · {m.nombre}
-                    </option>
-                  ))}
-                </select>
+                {loading ? (
+                  <div className="h-10 rounded-xl bg-neutral-900 animate-pulse" />
+                ) : (
+                  <select
+                    value={materiaId}
+                    onChange={(e)=>setMateriaId(e.target.value===""? "": Number(e.target.value))}
+                    className={input}
+                  >
+                    <option value="">— Selecciona —</option>
+                    {materias.map(m=>(
+                      <option key={m.id_materia} value={m.id_materia}>
+                        {m.codigo} · {m.nombre}
+                      </option>
+                    ))}
+                  </select>
+                )}
               </div>
               <div className="space-y-2">
                 <label className={label}>Plan</label>
@@ -200,33 +220,37 @@ export default function PlanEstudios() {
                 disabled={busy}
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800 disabled:opacity-50"
               >
-                <Plus className="w-4 h-4" /> Asociar
+                <Plus className="w-4 h-4 text-white" /> Asociar
               </button>
             </div>
           </section>
 
-          {/* Listado */}
           <section className="bg-white rounded-2xl shadow">
             <div className="overflow-x-auto">
               <table className="min-w-full text-sm">
                 <thead>
-                  <tr className="bg-slate-50 text-slate-700">
-                    <th className="text-left px-4 py-2">Materia</th>
-                    <th className="text-left px-4 py-2">Plan</th>
-                    <th className="text-left px-4 py-2">Semestre</th>
-                    <th className="text-left px-4 py-2">Tipo</th>
-                    <th className="text-left px-4 py-2">Teo</th>
-                    <th className="text-left px-4 py-2">Pra</th>
-                    <th className="text-left px-4 py-2">Acciones</th>
+                  <tr className="bg-slate-100 text-slate-900">
+                    <th className="text-left px-4 py-2 font-semibold">Materia</th>
+                    <th className="text-left px-4 py-2 font-semibold">Plan</th>
+                    <th className="text-left px-4 py-2 font-semibold">Semestre</th>
+                    <th className="text-left px-4 py-2 font-semibold">Tipo</th>
+                    <th className="text-left px-4 py-2 font-semibold">Teo</th>
+                    <th className="text-left px-4 py-2 font-semibold">Pra</th>
+                    <th className="text-left px-4 py-2 font-semibold">Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {items.length === 0 && (
+                  {loading && (<>
+                    <SkeletonRow/><SkeletonRow/><SkeletonRow/>
+                  </>)}
+
+                  {!loading && items.length === 0 && (
                     <tr>
-                      <td colSpan={7} className="px-4 py-6 text-center text-slate-500">Sin asociaciones</td>
+                      <td colSpan={7} className="px-4 py-6 text-center text-slate-700">Sin asociaciones</td>
                     </tr>
                   )}
-                  {items.map(p=>(
+
+                  {!loading && items.map(p=>(
                     <tr key={p.id} className="border-t">
                       <td className="px-4 py-2">{p.materia_label}</td>
                       <td className="px-4 py-2">{p.plan}</td>
@@ -237,10 +261,10 @@ export default function PlanEstudios() {
                       <td className="px-4 py-2">
                         <button
                           onClick={()=>eliminar(p.id)}
-                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border text-red-600 hover:bg-red-50"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-red-300 text-red-700 hover:bg-red-50"
                           title="Eliminar"
                         >
-                          <Trash2 className="w-4 h-4" /> Eliminar
+                          <Trash2 className="w-4 h-4 text-red-700" /> Eliminar
                         </button>
                       </td>
                     </tr>

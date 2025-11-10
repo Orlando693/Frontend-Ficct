@@ -3,15 +3,31 @@ import { Save } from "lucide-react";
 import { getParametros, saveParametros } from "./api.parametros";
 import type { ParametrosDTO, TurnoCfg, TurnoKey } from "./types";
 
-const labelCls = "block text-sm text-slate-600";
+const labelCls = "block text-sm text-slate-800";
 const inputCls =
-  "rounded-xl border border-slate-200 px-3 py-2 bg-white text-slate-800 " +
-  "placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-300";
+  "rounded-xl border border-slate-300 px-3 py-2 bg-white text-slate-900 " +
+  "placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400";
 
 const dias = [
   { n: 1, label: "Lun" }, { n: 2, label: "Mar" }, { n: 3, label: "Mié" },
   { n: 4, label: "Jue" }, { n: 5, label: "Vie" }, { n: 6, label: "Sáb" }, { n: 7, label: "Dom" },
 ];
+
+function SkeletonBar({w="w-40"}:{w?:string}) {
+  return <div className={`h-4 ${w} rounded bg-neutral-900 animate-pulse`} />;
+}
+function SkeletonCard() {
+  return (
+    <div className="space-y-2 border rounded-xl p-3">
+      <SkeletonBar w="w-24" />
+      <div className="grid grid-cols-2 gap-2">
+        <div><SkeletonBar w="w-24" /><div className="h-10 mt-2 rounded bg-neutral-900 animate-pulse" /></div>
+        <div><SkeletonBar w="w-24" /><div className="h-10 mt-2 rounded bg-neutral-900 animate-pulse" /></div>
+      </div>
+      <SkeletonBar w="w-32" />
+    </div>
+  );
+}
 
 export default function Parametros() {
   const [loading, setLoading] = useState(false);
@@ -74,80 +90,105 @@ export default function Parametros() {
   return (
     <div className="space-y-4">
       <header>
-        <h2 className="text-xl font-semibold">Parámetros de horario</h2>
-        <p className="text-slate-600 text-sm">
+        <h2 className="text-xl font-semibold text-slate-900">Parámetros de horario</h2>
+        <p className="text-slate-700 text-sm">
           Días hábiles, duración de bloque y franjas por turno{loading ? " · Cargando…" : ""}
         </p>
       </header>
 
-      <section className="grid md:grid-cols-3 gap-4">
-        <div className="space-y-2">
-          <label className={labelCls}>Duración de bloque (min)</label>
-          <input
-            type="number" min={15} step={5}
-            value={duracion}
-            onChange={(e)=>setDuracion(e.target.value==="" ? "" : Number(e.target.value))}
-            placeholder="30"
-            className={inputCls}
-          />
-        </div>
-
-        <div className="space-y-2 md:col-span-2">
-          <label className={labelCls}>Días hábiles</label>
-          <div className="flex flex-wrap gap-2">
-            {dias.map(d => (
-              <button
-                key={d.n} type="button" onClick={()=>toggleDia(d.n)}
-                className={`px-3 py-1.5 rounded-xl border text-sm ${
-                  diasHab.includes(d.n)
-                    ? "bg-slate-900 text-white border-slate-900"
-                    : "border-slate-200 text-slate-700 hover:bg-slate-50"
-                }`}
-              >
-                {d.label}
-              </button>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="bg-white rounded-2xl shadow p-4">
-        <h3 className="font-semibold mb-3 text-slate-800">Turnos / Franjas</h3>
-        <div className="grid sm:grid-cols-3 gap-4">
-          {turnos.map(t => (
-            <div key={t.turno} className="space-y-2 border rounded-xl p-3">
-              <div className="text-sm text-slate-600 capitalize">{t.turno}</div>
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className={labelCls}>Inicio</label>
-                  <input
-                    type="time" value={t.inicio}
-                    onChange={(e)=>setTurnoField(t.turno, "inicio", e.target.value)}
-                    className={inputCls}
-                  />
-                </div>
-                <div>
-                  <label className={labelCls}>Fin</label>
-                  <input
-                    type="time" value={t.fin}
-                    onChange={(e)=>setTurnoField(t.turno, "fin", e.target.value)}
-                    className={inputCls}
-                  />
-                </div>
-              </div>
-              <p className="text-xs text-slate-500">Ej.: 07:00 → 11:30</p>
+      {/* Skeleton mientras carga */}
+      {loading ? (
+        <>
+          <section className="grid md:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <SkeletonBar w="w-48" />
+              <div className="h-10 rounded bg-neutral-900 animate-pulse" />
             </div>
-          ))}
-        </div>
-      </section>
+            <div className="space-y-2 md:col-span-2">
+              <SkeletonBar w="w-40" />
+              <div className="h-10 rounded bg-neutral-900 animate-pulse" />
+            </div>
+          </section>
+
+          <section className="bg-white rounded-2xl shadow p-4">
+            <SkeletonBar w="w-64" />
+            <div className="grid sm:grid-cols-3 gap-4 mt-3">
+              <SkeletonCard /><SkeletonCard /><SkeletonCard />
+            </div>
+          </section>
+        </>
+      ) : (
+        <>
+          <section className="grid md:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <label className={labelCls}>Duración de bloque (min)</label>
+              <input
+                type="number" min={15} step={5}
+                value={duracion}
+                onChange={(e)=>setDuracion(e.target.value==="" ? "" : Number(e.target.value))}
+                placeholder="30"
+                className={inputCls}
+              />
+            </div>
+
+            <div className="space-y-2 md:col-span-2">
+              <label className={labelCls}>Días hábiles</label>
+              <div className="flex flex-wrap gap-2">
+                {dias.map(d => (
+                  <button
+                    key={d.n} type="button" onClick={()=>toggleDia(d.n)}
+                    className={`px-3 py-1.5 rounded-xl border text-sm ${
+                      diasHab.includes(d.n)
+                        ? "bg-slate-900 text-white border-slate-900"
+                        : "border-slate-300 text-slate-800 hover:bg-slate-100"
+                    }`}
+                  >
+                    {d.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          <section className="bg-white rounded-2xl shadow p-4">
+            <h3 className="font-semibold mb-3 text-slate-900">Turnos / Franjas</h3>
+            <div className="grid sm:grid-cols-3 gap-4">
+              {turnos.map(t => (
+                <div key={t.turno} className="space-y-2 border rounded-xl p-3">
+                  <div className="text-sm text-slate-800 capitalize">{t.turno}</div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className={labelCls}>Inicio</label>
+                      <input
+                        type="time" value={t.inicio}
+                        onChange={(e)=>setTurnoField(t.turno, "inicio", e.target.value)}
+                        className={inputCls}
+                      />
+                    </div>
+                    <div>
+                      <label className={labelCls}>Fin</label>
+                      <input
+                        type="time" value={t.fin}
+                        onChange={(e)=>setTurnoField(t.turno, "fin", e.target.value)}
+                        className={inputCls}
+                      />
+                    </div>
+                  </div>
+                  <p className="text-xs text-slate-600">Ej.: 07:00 → 11:30</p>
+                </div>
+              ))}
+            </div>
+          </section>
+        </>
+      )}
 
       <div className="flex items-center gap-3">
         <button
           onClick={save}
-          disabled={busy}
+          disabled={busy || loading}
           className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800 disabled:opacity-50"
         >
-          <Save className="w-4 h-4" />
+          <Save className="w-4 h-4 text-white" />
           Guardar cambios
         </button>
         {error && <span className="text-red-600 text-sm">{error}</span>}
