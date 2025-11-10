@@ -157,7 +157,7 @@ export default function PlanEstudios() {
 
       {typeof carreraId === "number" && (
         <>
-          <section className="bg-white rounded-2xl shadow p-4 space-y-4">
+          <section className="bg-white rounded-2xl shadow p-4 space-y-4 ring-1 ring-slate-200">
             <h3 className="font-semibold text-slate-900">Asociar materia</h3>
             <div className="grid md:grid-cols-5 gap-3">
               <div className="space-y-2">
@@ -218,18 +218,23 @@ export default function PlanEstudios() {
               <button
                 onClick={agregar}
                 disabled={busy}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800 disabled:opacity-50"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800 disabled:opacity-50 shadow-sm"
               >
                 <Plus className="w-4 h-4 text-white" /> Asociar
               </button>
             </div>
           </section>
 
-          <section className="bg-white rounded-2xl shadow">
-            <div className="overflow-x-auto">
-              <table className="min-w-full text-sm">
-                <thead>
-                  <tr className="bg-slate-100 text-slate-900">
+          {/* TABLA ALTO CONTRASTE */}
+          <section className="rounded-2xl overflow-hidden ring-1 ring-slate-300 shadow-sm bg-white">
+            <div className="px-4 py-3 text-sm text-slate-800 bg-slate-50 border-b border-slate-200">
+              {items.length} asociación(es)
+            </div>
+
+            <div className="overflow-x-auto max-h-[65vh]">
+              <table className="min-w-full text-sm text-slate-900">
+                <thead className="bg-slate-900 text-white sticky top-0 z-10">
+                  <tr>
                     <th className="text-left px-4 py-2 font-semibold">Materia</th>
                     <th className="text-left px-4 py-2 font-semibold">Plan</th>
                     <th className="text-left px-4 py-2 font-semibold">Semestre</th>
@@ -239,32 +244,37 @@ export default function PlanEstudios() {
                     <th className="text-left px-4 py-2 font-semibold">Acciones</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-slate-200">
                   {loading && (<>
                     <SkeletonRow/><SkeletonRow/><SkeletonRow/>
                   </>)}
 
                   {!loading && items.length === 0 && (
-                    <tr>
-                      <td colSpan={7} className="px-4 py-6 text-center text-slate-700">Sin asociaciones</td>
+                    <tr className="bg-white">
+                      <td colSpan={7} className="px-4 py-6 text-center text-slate-800">Sin asociaciones</td>
                     </tr>
                   )}
 
-                  {!loading && items.map(p=>(
-                    <tr key={p.id} className="border-t">
-                      <td className="px-4 py-2">{p.materia_label}</td>
-                      <td className="px-4 py-2">{p.plan}</td>
-                      <td className="px-4 py-2">{p.semestre}</td>
-                      <td className="px-4 py-2 capitalize">{p.tipo}</td>
-                      <td className="px-4 py-2">{p.carga_teo}</td>
-                      <td className="px-4 py-2">{p.carga_pra}</td>
-                      <td className="px-4 py-2">
+                  {!loading && items.map((p, idx)=>(
+                    <tr
+                      key={p.id}
+                      className={`hover:bg-slate-100 transition-colors ${
+                        idx % 2 === 0 ? "bg-white" : "bg-slate-50"
+                      }`}
+                    >
+                      <td className="px-4 py-3">{p.materia_label}</td>
+                      <td className="px-4 py-3">{p.plan}</td>
+                      <td className="px-4 py-3">{p.semestre}</td>
+                      <td className="px-4 py-3 capitalize">{p.tipo}</td>
+                      <td className="px-4 py-3">{p.carga_teo}</td>
+                      <td className="px-4 py-3">{p.carga_pra}</td>
+                      <td className="px-4 py-3">
                         <button
                           onClick={()=>eliminar(p.id)}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-red-300 text-red-700 hover:bg-red-50"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-600 text-white hover:bg-rose-700 focus:ring-2 focus:ring-rose-600/50 shadow-sm"
                           title="Eliminar"
                         >
-                          <Trash2 className="w-4 h-4 text-red-700" /> Eliminar
+                          <Trash2 className="w-4 h-4 text-white" /> Eliminar
                         </button>
                       </td>
                     </tr>
