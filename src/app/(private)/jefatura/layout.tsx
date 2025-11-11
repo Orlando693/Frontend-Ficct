@@ -1,7 +1,7 @@
 "use client"
 
 import { NavLink, Outlet } from "react-router-dom"
-import { LayoutDashboard, LogOut, BarChart3, ScrollText, Menu, X, BookOpenText, Layers, CalendarRange } from "lucide-react"
+import { LayoutDashboard, LogOut, BarChart3, Menu, X, BookOpenText, Layers, CalendarRange } from "lucide-react"
 import { useState } from "react"
 import { logout } from "../../../features/auth/logout"
 
