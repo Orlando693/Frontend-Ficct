@@ -46,10 +46,7 @@ export default function DocenteLayout() {
               <LayoutDashboard className="w-5 h-5" />
               Resumen
             </NavLink>
-            <NavLink to="/docente/horario" className={({isActive}) => `${linkBase} ${isActive ? linkActive : ""}`} onClick={() => setIsSidebarOpen(false)}>
-              <CalendarDays className="w-5 h-5" />
-              Mi horario
-            </NavLink>
+          
             <NavLink to="/docente/asistencia" className={({isActive}) => `${linkBase} ${isActive ? linkActive : ""}`} onClick={() => setIsSidebarOpen(false)}>
               <ClipboardCheck className="w-5 h-5" />
               Registrar asistencia
