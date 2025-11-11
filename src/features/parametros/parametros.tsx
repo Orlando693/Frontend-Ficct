@@ -14,15 +14,21 @@ const dias = [
 ];
 
 function SkeletonBar({w="w-40"}:{w?:string}) {
-  return <div className={`h-4 ${w} rounded bg-slate-500 animate-pulse`} />;
+  return <div className={`h-4 ${w} rounded bg-neutral-900 animate-pulse`} />;
 }
 function SkeletonCard() {
   return (
     <div className="space-y-2 border rounded-xl p-3">
       <SkeletonBar w="w-24" />
       <div className="grid grid-cols-2 gap-2">
-        <div><SkeletonBar w="w-24" /><div className="h-10 mt-2 rounded bg-slate-500 animate-pulse" /></div>
-        <div><SkeletonBar w="w-24" /><div className="h-10 mt-2 rounded bg-slate-500 animate-pulse" /></div>
+        <div>
+          <SkeletonBar w="w-24" />
+          <div className="h-10 mt-2 rounded bg-neutral-900 animate-pulse" />
+        </div>
+        <div>
+          <SkeletonBar w="w-24" />
+          <div className="h-10 mt-2 rounded bg-neutral-900 animate-pulse" />
+        </div>
       </div>
       <SkeletonBar w="w-32" />
     </div>
@@ -102,11 +108,11 @@ export default function Parametros() {
           <section className="grid md:grid-cols-3 gap-4">
             <div className="space-y-2">
               <SkeletonBar w="w-48" />
-              <div className="h-10 rounded bg-slate-500 animate-pulse" />
+              <div className="h-10 rounded bg-neutral-900 animate-pulse" />
             </div>
             <div className="space-y-2 md:col-span-2">
               <SkeletonBar w="w-40" />
-              <div className="h-10 rounded bg-slate-500 animate-pulse" />
+              <div className="h-10 rounded bg-neutral-900 animate-pulse" />
             </div>
           </section>
 
@@ -137,10 +143,10 @@ export default function Parametros() {
                 {dias.map(d => (
                   <button
                     key={d.n} type="button" onClick={()=>toggleDia(d.n)}
-                    className={`px-3 py-1.5 rounded-xl border text-sm ${
+                    className={`px-3 py-1.5 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-slate-900/40 ${
                       diasHab.includes(d.n)
                         ? "bg-slate-900 text-white border-slate-900"
-                        : "border-slate-300 text-slate-800 hover:bg-slate-100"
+                        : "bg-slate-700 text-white hover:bg-slate-800 border-slate-700"
                     }`}
                   >
                     {d.label}

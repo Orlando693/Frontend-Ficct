@@ -52,10 +52,7 @@ export default function JefaturaLayout() {
               <BarChart3 className="w-5 h-5" />
               Gestión de Reportes
             </NavLink>
-            <NavLink to="/jefatura/bitacora" className={({isActive}) => `${linkBase} ${isActive ? linkActive : ""}`} onClick={() => setIsSidebarOpen(false)}>
-              <ScrollText className="w-5 h-5" />
-              Gestión de Bitácora
-            </NavLink>
+            
             <NavLink
                 to="/jefatura/materias"
                 className={({isActive}) => `${linkBase} ${isActive ? linkActive : ""}`}

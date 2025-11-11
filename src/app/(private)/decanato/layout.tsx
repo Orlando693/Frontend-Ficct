@@ -54,6 +54,7 @@ export default function DecanatoLayout() {
               <ScrollText className="w-5 h-5" />
               Gestión de Bitácora
             </NavLink>
+          
           </nav>
 
           <div className="mt-auto pt-6">

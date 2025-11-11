@@ -100,7 +100,7 @@ export default function ImportarOferta() {
       }
 
       switch (status) {
-        case "ok": ok++; break;       
+        case "ok": ok++; break;
         case "error": err++; break;
       }
 
@@ -167,8 +167,12 @@ export default function ImportarOferta() {
           <li>La <span className="font-medium">gestión</span> se selecciona aquí (no va en el archivo).</li>
         </ul>
         <div className="flex gap-2">
-          <button onClick={downloadPlantillaLocal} className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-300 text-slate-900 hover:bg-slate-100">
-            <FileDown className="w-4 h-4 text-slate-800" /> Descargar plantilla CSV
+          {/* Botón oscuro con texto/ícono blanco */}
+          <button
+            onClick={downloadPlantillaLocal}
+            className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-700 text-white hover:bg-slate-800 shadow-sm"
+          >
+            <FileDown className="w-4 h-4 text-current" /> Descargar plantilla CSV
           </button>
         </div>
       </section>
@@ -199,19 +203,23 @@ export default function ImportarOferta() {
 
       {/* Acciones */}
       <div className="flex gap-2 flex-wrap">
+        {/* Previsualizar: oscuro y texto blanco */}
         <button
           onClick={doPreview}
           disabled={busy || !file || typeof gestionId !== "number"}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-300 text-slate-900 hover:bg-slate-100 disabled:opacity-50"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-700 text-white hover:bg-slate-800 shadow-sm disabled:opacity-50"
         >
-          <Eye className="w-4 h-4 text-slate-800" /> Previsualizar
+          <Eye className="w-4 h-4 text-current" /> Previsualizar
         </button>
+
+        {/* Confirmar: ya era oscuro; aseguramos íconos blancos */}
         <button
           onClick={doConfirm}
           disabled={busy || !file || totals.total === 0 || totals.error > 0 || typeof gestionId !== "number"}
           className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800 disabled:opacity-50"
         >
-          {busy && <Loader2 className="w-4 h-4 animate-spin text-white" />} <CheckCircle2 className="w-4 h-4 text-white" /> Confirmar importación
+          {busy && <Loader2 className="w-4 h-4 animate-spin text-white" />}
+          <CheckCircle2 className="w-4 h-4 text-current" /> Confirmar importación
         </button>
       </div>
 

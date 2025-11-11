@@ -9,9 +9,10 @@ import ImportarOferta from "./importar";
 export default function GestionAcademica() {
   const [tab, setTab] = useState<"periodos" | "parametros" | "plan" | "importar">("periodos");
 
-  const tabBase  = "inline-flex items-center gap-2 px-3 py-2 rounded-xl border text-sm transition-colors";
-  const tabActive= "bg-slate-900 text-white border-slate-900";
-  const tabIdle  = "border-slate-300 text-slate-800 hover:bg-slate-100";
+  // Botones SIEMPRE con texto/ícono blanco (text-white) y alto contraste
+  const tabBase   = "inline-flex items-center gap-2 px-3 py-2 rounded-xl border text-sm text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-900/40 transition-colors";
+  const tabActive = "bg-slate-900 border-slate-900";
+  const tabIdle   = "bg-slate-700 hover:bg-slate-800 border-slate-700";
 
   const Btn = ({
     active, onClick, children,
