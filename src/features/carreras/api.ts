@@ -132,5 +132,5 @@ export async function setEstado(id: number | string, estado: EstadoCarrera): Pro
 }
 /** DELETE /api/carreras/{id} */
 export async function remove(id: number | string): Promise<void> {
-  await apiFetch(/carreras/, { method: "DELETE" });
+  await apiFetch(`/carreras/${id}`, { method: "DELETE" });
 }

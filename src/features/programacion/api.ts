@@ -1,6 +1,5 @@
 import type { AulaMiniDTO, GrupoMiniDTO, HorarioDTO, DisponibilidadResp } from "./types";
 import type { GestionDTO } from "../parametros/types";
-import { dtoToGestion } from "../parametros/types";
 
 const API = import.meta.env.VITE_API_URL;
 

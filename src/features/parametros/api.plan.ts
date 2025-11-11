@@ -1,5 +1,4 @@
-import type { CarreraMiniDTO, MateriaMiniDTO, PlanDTO, PlanRecord } from "./types";
-import { dtoToPlan } from "./types";
+import type { CarreraMiniDTO, MateriaMiniDTO, PlanDTO } from "./types";
 
 const API = import.meta.env.VITE_API_URL;
 

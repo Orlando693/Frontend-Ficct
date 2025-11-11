@@ -18,8 +18,6 @@ export default function AulasFeature() {
   const [busy, setBusy] = useState(false);
   const [editing, setEditing] = useState<Aula | null>(null);
 
-  // Alto contraste
-  const labelCls = "block text-sm text-slate-900 font-medium";
   const inputCls =
     "rounded-xl border border-slate-300 px-3 py-2 bg-white text-slate-900 " +
     "placeholder:text-slate-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400";

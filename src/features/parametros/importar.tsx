@@ -1,10 +1,10 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import { Upload, FileDown, Eye, CheckCircle2, AlertTriangle, XCircle, Loader2 } from "lucide-react";
+import { FileDown, Eye, CheckCircle2, AlertTriangle, XCircle, Loader2 } from "lucide-react";
 import { listGestiones } from "./api.gestiones";
 import type { Gestion, GestionDTO } from "./types";
 import { dtoToGestion } from "./types";
-import { downloadPlantillaURL, serverPreview, serverConfirm } from "./api.importar";
+import { serverPreview, serverConfirm } from "./api.importar";
 import type { PreviewRow, PreviewSummary } from "./types.importar";
 
 const labelCls = "block text-sm text-slate-800";
@@ -14,7 +14,6 @@ const inputCls =
 
 // columnas mínimas del CSV
 const REQUIRED_COLS = ["carrera_sigla", "materia_codigo", "paralelo", "turno", "capacidad"] as const;
-type MinCols = typeof REQUIRED_COLS[number];
 
 export default function ImportarOferta() {
   const [gestiones, setGestiones] = useState<Gestion[]>([]);
