@@ -14,14 +14,14 @@ const input =
   "placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400";
 
 function SkeletonBar({w="w-40"}:{w?:string}) {
-  return <div className={`h-4 ${w} rounded bg-neutral-900 animate-pulse`} />;
+  return <div className={`h-4 ${w} rounded bg-slate-500 animate-pulse`} />;
 }
 function SkeletonRow() {
   return (
     <tr className="border-t">
       {[...Array(7)].map((_, i) => (
         <td key={i} className="px-4 py-3">
-          <div className="h-4 w-full max-w-[160px] rounded bg-neutral-900 animate-pulse" />
+          <div className="h-4 w-full max-w-[160px] rounded bg-slate-500 animate-pulse" />
         </td>
       ))}
     </tr>
@@ -137,7 +137,7 @@ export default function PlanEstudios() {
         <div className="space-y-2">
           <label className={label}>Carrera</label>
           {loading ? (
-            <div className="h-10 rounded-xl bg-neutral-900 animate-pulse" />
+            <div className="h-10 rounded-xl bg-slate-500 animate-pulse" />
           ) : (
             <select
               value={carreraId}
@@ -163,7 +163,7 @@ export default function PlanEstudios() {
               <div className="space-y-2">
                 <label className={label}>Materia</label>
                 {loading ? (
-                  <div className="h-10 rounded-xl bg-neutral-900 animate-pulse" />
+                  <div className="h-10 rounded-xl bg-slate-500 animate-pulse" />
                 ) : (
                   <select
                     value={materiaId}

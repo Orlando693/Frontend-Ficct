@@ -50,11 +50,7 @@ export default function MateriasFeature() {
     setOpen(true);
   }
 
-  async function save(values: {
-    codigo: string;
-    nombre: string;
-    creditos: number;
-  }) {
+  async function save(values: { codigo: string; nombre: string; creditos: number }) {
     try {
       setBusy(true);
       setError(null);
@@ -87,7 +83,6 @@ export default function MateriasFeature() {
       const confirmed = window.confirm(`¿Eliminar la materia "${m.nombre}" (${m.codigo})?`);
       if (!confirmed) return;
     }
-
     try {
       setError(null);
       await deleteMateria(m.id);
@@ -97,46 +92,52 @@ export default function MateriasFeature() {
     }
   }
 
+  const inputCls =
+    "rounded-xl border border-slate-300 px-3 py-2 bg-white text-slate-900 placeholder:text-slate-600 " +
+    "focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400";
+
   return (
-    <div className="space-y-4 text-slate-800">
-      <header className="flex items-center justify-between">
+    <div className="space-y-4 text-slate-900">
+      <header className="flex items-center justify-between flex-wrap gap-2">
         <div>
           <h2 className="text-xl font-semibold">Gestión de Materias</h2>
-          <p className="text-slate-700 text-sm">
-            Crear, editar, activar/inactivar y listar materias.
-            {loading ? " Cargando…" : ""}
+          <p className="text-slate-800 text-sm">
+            Crear, editar, activar/inactivar y listar materias{loading ? " · Cargando…" : ""}
           </p>
         </div>
         <button
           onClick={openCreate}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-400"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900/50"
         >
           <Plus className="w-4 h-4" />
           Nueva materia
         </button>
       </header>
 
-      <section className="grid sm:grid-cols-2 gap-3">
+      {/* Filtros – responsive */}
+      <section className="grid gap-3 sm:grid-cols-[1fr_220px]">
         <div className="relative">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Buscar por código o nombre…"
-            className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-400 bg-white text-slate-800 placeholder:text-slate-500"
+            className={"w-full pl-9 pr-3 py-2 " + inputCls}
+            aria-label="Buscar"
           />
         </div>
-        <div className="flex gap-2">
-          <select
-            value={estado}
-            onChange={(e) => setEstado(e.target.value as any)}
-            className="rounded-xl border border-slate-300 px-3 py-2 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-400"
-          >
-            <option value="todas">Todas</option>
-            <option value="ACTIVA">ACTIVAS</option>
-            <option value="INACTIVA">INACTIVAS</option>
-          </select>
-        </div>
+
+        <label className="sr-only">Estado</label>
+        <select
+          value={estado}
+          onChange={(e) => setEstado(e.target.value as any)}
+          className={inputCls}
+          aria-label="Estado"
+        >
+          <option value="todas">Todas</option>
+          <option value="ACTIVA">ACTIVAS</option>
+          <option value="INACTIVA">INACTIVAS</option>
+        </select>
       </section>
 
       <MateriasTable

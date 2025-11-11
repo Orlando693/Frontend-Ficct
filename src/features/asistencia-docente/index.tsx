@@ -33,12 +33,13 @@ function withinWindow(sess: SesionDocenteDTO, ahora = new Date()) {
   return ahora >= open && ahora <= close;
 }
 
+/* Skeleton fila: gris (no negro) para verse en fondo blanco */
 function SkeletonRow() {
   return (
     <tr className="border-b border-slate-200">
-      {[...Array(6)].map((_, i) => (
+      {Array.from({ length: 6 }).map((_, i) => (
         <td key={i} className="px-4 py-3">
-          <div className="h-4 w-full max-w-[200px] rounded bg-neutral-900 animate-pulse" />
+          <div className="h-4 w-full max-w-[200px] rounded bg-slate-500 animate-pulse" />
         </td>
       ))}
     </tr>
@@ -100,7 +101,7 @@ export default function AsistenciaDocente() {
         <p className="text-slate-700 text-sm">{hoyLeyenda}</p>
       </header>
 
-      {/* Filtros */}
+      {/* Filtros (responsive) */}
       <section className="bg-white rounded-2xl shadow p-4 ring-1 ring-slate-200">
         <div className="grid md:grid-cols-3 gap-4">
           <div className="space-y-2">
@@ -115,7 +116,7 @@ export default function AsistenciaDocente() {
         </div>
       </section>
 
-      {/* Lista de sesiones (alto contraste) */}
+      {/* Lista de sesiones (alto contraste + responsive) */}
       <section className="bg-white rounded-2xl shadow overflow-x-auto ring-1 ring-slate-200">
         <table className="min-w-full text-sm text-slate-900">
           <thead className="bg-slate-900 text-white sticky top-0 z-10">

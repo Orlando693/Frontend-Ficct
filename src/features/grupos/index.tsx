@@ -27,8 +27,8 @@ export default function GruposFeature() {
   const [editing, setEditing] = useState<Grupo | null>(null);
 
   const inputCls =
-    "rounded-xl border border-slate-300 px-3 py-2 bg-white text-slate-800 " +
-    "placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-400";
+    "rounded-xl border border-slate-300 px-3 py-2 bg-white text-slate-900 " +
+    "placeholder:text-slate-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400";
 
   async function loadCatalogs() {
     try {
@@ -59,7 +59,7 @@ export default function GruposFeature() {
   }
 
   useEffect(() => { loadCatalogs(); }, []);
-  useEffect(() => { fetchData(); }, [q, estado, gestionId, materiaId]);
+  useEffect(() => { fetchData(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [q, estado, gestionId, materiaId]);
 
   function openCreate() { setEditing(null); setOpen(true); }
   function openEdit(g: Grupo) { setEditing(g); setOpen(true); }
@@ -70,11 +70,8 @@ export default function GruposFeature() {
     try {
       setBusy(true);
       setError(null);
-      if (editing) {
-        await updateGrupo(editing.id, values);
-      } else {
-        await createGrupo(values);
-      }
+      if (editing) await updateGrupo(editing.id, values);
+      else await createGrupo(values);
       setOpen(false);
       fetchData();
     } catch (e: any) {
@@ -109,25 +106,26 @@ export default function GruposFeature() {
   }
 
   return (
-    <div className="space-y-4 text-slate-800">
-      <header className="flex items-center justify-between">
+    <div className="space-y-4 text-slate-900">
+      <header className="flex items-center justify-between flex-wrap gap-2">
         <div>
           <h2 className="text-xl font-semibold">Gestión de Grupos</h2>
-          <p className="text-slate-700 text-sm">
+          <p className="text-slate-800 text-sm">
             Crear, editar, activar/inactivar y listar grupos
             {loading ? " · Cargando…" : ""}
           </p>
         </div>
         <button
           onClick={openCreate}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-400"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900/50"
         >
           <Plus className="w-4 h-4" />
           Nuevo grupo
         </button>
       </header>
 
-      <section className="grid lg:grid-cols-[1fr_220px_220px_220px] gap-3">
+      {/* Filtros – responsive */}
+      <section className="grid gap-3 md:grid-cols-[1fr_220px_220px_220px]">
         <div className="relative">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
           <input
@@ -135,23 +133,28 @@ export default function GruposFeature() {
             onChange={(e) => setQ(e.target.value)}
             placeholder="Buscar por materia/paralelo…"
             className={"w-full pl-9 pr-3 py-2 " + inputCls}
+            aria-label="Buscar"
           />
         </div>
 
+        <label className="sr-only">Estado</label>
         <select
           value={estado}
           onChange={(e) => setEstado(e.target.value as any)}
           className={inputCls}
+          aria-label="Estado"
         >
           <option value="todos">Todos</option>
           <option value="ACTIVO">ACTIVOS</option>
           <option value="INACTIVO">INACTIVOS</option>
         </select>
 
+        <label className="sr-only">Gestión</label>
         <select
           value={gestionId}
           onChange={(e) => setGestionId(e.target.value ? Number(e.target.value) : "")}
           className={inputCls}
+          aria-label="Gestión"
         >
           <option value="">Gestión</option>
           {gestiones.map((g) => (
@@ -161,10 +164,12 @@ export default function GruposFeature() {
           ))}
         </select>
 
+        <label className="sr-only">Materia</label>
         <select
           value={materiaId}
           onChange={(e) => setMateriaId(e.target.value ? Number(e.target.value) : "")}
           className={inputCls}
+          aria-label="Materia"
         >
           <option value="">Materia</option>
           {materias.map((m) => (
@@ -175,13 +180,7 @@ export default function GruposFeature() {
         </select>
       </section>
 
-      <GruposTable
-        items={items}
-        loading={loading}
-        onEdit={openEdit}
-        onToggle={toggle}
-        onDelete={remove}
-      />
+      <GruposTable items={items} loading={loading} onEdit={openEdit} onToggle={toggle} onDelete={remove} />
 
       {error && (
         <div className="p-3 rounded-xl bg-red-50 text-red-700 border border-red-200">

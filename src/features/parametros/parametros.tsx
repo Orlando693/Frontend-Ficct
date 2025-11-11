@@ -14,15 +14,15 @@ const dias = [
 ];
 
 function SkeletonBar({w="w-40"}:{w?:string}) {
-  return <div className={`h-4 ${w} rounded bg-neutral-900 animate-pulse`} />;
+  return <div className={`h-4 ${w} rounded bg-slate-500 animate-pulse`} />;
 }
 function SkeletonCard() {
   return (
     <div className="space-y-2 border rounded-xl p-3">
       <SkeletonBar w="w-24" />
       <div className="grid grid-cols-2 gap-2">
-        <div><SkeletonBar w="w-24" /><div className="h-10 mt-2 rounded bg-neutral-900 animate-pulse" /></div>
-        <div><SkeletonBar w="w-24" /><div className="h-10 mt-2 rounded bg-neutral-900 animate-pulse" /></div>
+        <div><SkeletonBar w="w-24" /><div className="h-10 mt-2 rounded bg-slate-500 animate-pulse" /></div>
+        <div><SkeletonBar w="w-24" /><div className="h-10 mt-2 rounded bg-slate-500 animate-pulse" /></div>
       </div>
       <SkeletonBar w="w-32" />
     </div>
@@ -102,11 +102,11 @@ export default function Parametros() {
           <section className="grid md:grid-cols-3 gap-4">
             <div className="space-y-2">
               <SkeletonBar w="w-48" />
-              <div className="h-10 rounded bg-neutral-900 animate-pulse" />
+              <div className="h-10 rounded bg-slate-500 animate-pulse" />
             </div>
             <div className="space-y-2 md:col-span-2">
               <SkeletonBar w="w-40" />
-              <div className="h-10 rounded bg-neutral-900 animate-pulse" />
+              <div className="h-10 rounded bg-slate-500 animate-pulse" />
             </div>
           </section>
 

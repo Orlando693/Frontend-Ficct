@@ -164,7 +164,7 @@ export default function HorarioModal({
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <button
             type="button"
             onClick={consultar}
@@ -182,11 +182,17 @@ export default function HorarioModal({
           ) : null}
         </div>
 
-        {loading && <div className="h-3 w-40 rounded bg-neutral-900 animate-pulse" />}
+        {/* skeleton gris (no negro) */}
+        {loading && <div className="h-3 w-40 rounded bg-slate-500 animate-pulse" />}
         {error && <div className="p-3 rounded-xl bg-red-50 text-red-700 border border-red-200">{error}</div>}
 
-        <div className="flex justify-end gap-2 pt-2">
-          <button type="button" onClick={onCancel} className="px-4 py-2 rounded-lg border text-sm text-slate-800 hover:bg-slate-50">
+        <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-2">
+          {/* Cancelar: fondo oscuro + texto blanco para alto contraste */}
+          <button
+            type="button"
+            onClick={onCancel}
+            className="px-4 py-2 rounded-lg bg-slate-700 text-white text-sm hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-700/50"
+          >
             Cancelar
           </button>
           <button

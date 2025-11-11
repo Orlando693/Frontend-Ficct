@@ -14,6 +14,7 @@ export default function GruposTable({
   onDelete: (g: Grupo) => void;
   loading?: boolean;
 }) {
+  // Skeletons grises/oscuro visibles en fondo blanco
   const SkeletonRow = ({ i }: { i: number }) => (
     <tr key={`skeleton-${i}`} className="border-t">
       {Array.from({ length: 7 }).map((_, idx) => (
@@ -21,7 +22,7 @@ export default function GruposTable({
           <div
             className={
               "h-3 rounded animate-pulse " +
-              (idx === 6 ? "h-8 w-40 rounded-xl bg-neutral-800/30" : "w-24 bg-neutral-800/30")
+              (idx === 6 ? "h-8 w-40 rounded-xl bg-slate-600" : "w-24 bg-slate-500")
             }
           />
         </td>
@@ -30,15 +31,13 @@ export default function GruposTable({
   );
 
   return (
-    <div className="bg-white rounded-2xl shadow border text-slate-800">
-      <div className="px-4 py-3 text-sm text-slate-700">
-        {items.length} grupo(s)
-      </div>
+    <div className="bg-white rounded-2xl shadow border border-slate-200 text-slate-900">
+      <div className="px-4 py-3 text-sm text-slate-800">{items.length} grupo(s)</div>
 
       <div className="overflow-x-auto">
         <table className="min-w-full text-sm">
           <thead>
-            <tr className="bg-slate-800 text-white">
+            <tr className="bg-slate-900 text-white">
               <th className="text-left px-4 py-2 font-semibold">Gestión</th>
               <th className="text-left px-4 py-2 font-semibold">Materia</th>
               <th className="text-left px-4 py-2 font-semibold">Paralelo</th>
@@ -50,12 +49,11 @@ export default function GruposTable({
           </thead>
 
           <tbody className="[&>tr:hover]:bg-slate-50">
-            {loading &&
-              Array.from({ length: 5 }).map((_, i) => <SkeletonRow i={i} key={i} />)}
+            {loading && Array.from({ length: 5 }).map((_, i) => <SkeletonRow i={i} key={i} />)}
 
             {!loading && items.length === 0 && (
               <tr>
-                <td colSpan={7} className="px-4 py-6 text-center text-slate-600">
+                <td colSpan={7} className="px-4 py-6 text-center text-slate-800">
                   Sin resultados
                 </td>
               </tr>
@@ -79,7 +77,7 @@ export default function GruposTable({
                         className={`px-2 py-1 rounded-full text-xs font-semibold ${
                           g.estado === "ACTIVO"
                             ? "bg-emerald-100 text-emerald-800"
-                            : "bg-slate-200 text-slate-800"
+                            : "bg-slate-200 text-slate-900"
                         }`}
                       >
                         {g.estado}
@@ -89,18 +87,19 @@ export default function GruposTable({
                       <div className="flex flex-wrap gap-2">
                         <button
                           onClick={() => onEdit(g)}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 text-white hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-400"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 text-white hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900/50"
                           title="Editar"
                         >
-                          <Pencil className="w-4 h-4" /> Editar
+                          <Pencil className="w-4 h-4" />
+                          Editar
                         </button>
 
                         <button
                           onClick={() => onToggle(g, next)}
-                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-white focus:outline-none focus:ring-2 ${
+                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-white focus-visible:outline-none focus-visible:ring-2 ${
                             g.estado === "ACTIVO"
-                              ? "bg-amber-700 hover:bg-amber-600 focus:ring-amber-300"
-                              : "bg-emerald-700 hover:bg-emerald-600 focus:ring-emerald-300"
+                              ? "bg-amber-700 hover:bg-amber-600 focus-visible:ring-amber-700/40"
+                              : "bg-emerald-700 hover:bg-emerald-600 focus-visible:ring-emerald-700/40"
                           }`}
                           title={toggleLabel}
                         >
@@ -110,7 +109,7 @@ export default function GruposTable({
 
                         <button
                           onClick={() => onDelete(g)}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-rose-200 text-rose-700 hover:bg-rose-50 focus:outline-none focus:ring-2 focus:ring-rose-200"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-700 text-white hover:bg-rose-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-700/40"
                           title="Eliminar"
                         >
                           <Trash2 className="w-4 h-4" />

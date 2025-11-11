@@ -12,7 +12,7 @@ function SkeletonRow() {
     <tr className="border-t">
       {[...Array(4)].map((_, i) => (
         <td key={i} className="px-4 py-3">
-          <div className="h-4 w-full max-w-[160px] rounded bg-neutral-900 animate-pulse" />
+          <div className="h-4 w-full max-w-[160px] rounded bg-slate-500 animate-pulse" />
         </td>
       ))}
     </tr>
@@ -60,7 +60,7 @@ export default function Periodos() {
 
   return (
     <div className="space-y-4">
-      <header className="flex items-center justify-between">
+      <header className="flex items-center justify-between flex-wrap gap-2">
         <div>
           <h2 className="text-xl font-semibold text-slate-900">Periodos académicos</h2>
           <p className="text-slate-700 text-sm">
@@ -245,9 +245,10 @@ function GestionModal({
         </div>
 
         <div className="flex justify-end gap-2 pt-2">
+          {/* Cancelar con texto blanco y fondo oscuro */}
           <button
             type="button" onClick={onCancel}
-            className="px-4 py-2 rounded-lg border border-slate-300 text-sm text-slate-800 hover:bg-slate-100"
+            className="px-4 py-2 rounded-lg bg-slate-700 text-white text-sm hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-700/50"
           >
             Cancelar
           </button>

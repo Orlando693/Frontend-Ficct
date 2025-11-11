@@ -20,7 +20,8 @@ function SkeletonRow() {
     <tr className="border-b border-slate-200">
       {[...Array(5)].map((_, i) => (
         <td key={i} className="px-4 py-3">
-          <div className="h-4 w-full max-w-[160px] rounded bg-neutral-900 animate-pulse" />
+          {/* gris visible (no negro) */}
+          <div className="h-4 w-full max-w-[160px] rounded bg-slate-500 animate-pulse" />
         </td>
       ))}
     </tr>
@@ -192,7 +193,7 @@ export default function ProgramacionAcademica() {
         </div>
       </section>
 
-      {/* Tabla de programación (alto contraste) */}
+      {/* Tabla de programación (alto contraste + responsive) */}
       <section className="bg-white rounded-2xl shadow overflow-x-auto ring-1 ring-slate-200">
         <table className="min-w-full text-sm text-slate-900">
           <thead className="bg-slate-900 text-white sticky top-0 z-10">

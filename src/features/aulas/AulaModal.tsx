@@ -33,10 +33,11 @@ export default function AulaModal({
     initial ?? { numero: "", tipo: "", capacidad: "", piso: null }
   );
 
-  const labelCls = "block text-sm text-slate-600";
+  // Alto contraste
+  const labelCls = "block text-sm text-slate-800 font-medium";
   const inputCls =
-    "w-full rounded-xl border border-slate-200 px-3 py-2 bg-white text-slate-800 " +
-    "placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-300";
+    "w-full rounded-xl border border-slate-300 px-3 py-2 bg-white text-slate-900 " +
+    "placeholder:text-slate-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400";
 
   if (!open) return null;
 
@@ -54,10 +55,13 @@ export default function AulaModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center">
+    <div className="fixed inset-0 z-50 grid place-items-center" role="dialog" aria-modal="true">
       <div className="absolute inset-0 bg-black/40" onClick={onCancel} />
-      <form onSubmit={submit} className="relative bg-white rounded-2xl shadow-xl w-[95%] max-w-lg p-6 space-y-4">
-        <h3 className="text-lg font-semibold text-slate-800">
+      <form
+        onSubmit={submit}
+        className="relative bg-white rounded-2xl shadow-xl w-[92%] sm:w-[90%] max-w-lg p-6 sm:p-7 space-y-4"
+      >
+        <h3 className="text-lg font-semibold text-slate-900">
           {initial ? "Editar aula" : "Nueva aula"}
         </h3>
 
@@ -65,7 +69,7 @@ export default function AulaModal({
           <label className={labelCls}>Código / Número</label>
           <input
             value={form.numero}
-            onChange={(e) => setForm(s => ({ ...s, numero: e.target.value }))}
+            onChange={(e) => setForm((s) => ({ ...s, numero: e.target.value }))}
             placeholder="A-101"
             className={inputCls}
           />
@@ -76,10 +80,10 @@ export default function AulaModal({
             <label className={labelCls}>Tipo</label>
             <select
               value={form.tipo}
-              onChange={(e) => setForm(s => ({ ...s, tipo: e.target.value as AulaTipo }))}
+              onChange={(e) => setForm((s) => ({ ...s, tipo: e.target.value as AulaTipo }))}
               className={inputCls}
             >
-              <option value="">{/* placeholder */}Seleccione tipo</option>
+              <option value="">Seleccione tipo</option>
               <option value="teoria">Teoría</option>
               <option value="laboratorio">Laboratorio</option>
               <option value="auditorio">Auditorio</option>
@@ -93,7 +97,7 @@ export default function AulaModal({
               min={1}
               value={form.capacidad}
               onChange={(e) =>
-                setForm(s => ({ ...s, capacidad: e.target.value === "" ? "" : Number(e.target.value) }))
+                setForm((s) => ({ ...s, capacidad: e.target.value === "" ? "" : Number(e.target.value) }))
               }
               placeholder="60"
               className={inputCls}
@@ -107,7 +111,7 @@ export default function AulaModal({
             type="number"
             value={form.piso ?? ""}
             onChange={(e) =>
-              setForm(s => ({
+              setForm((s) => ({
                 ...s,
                 piso: e.target.value === "" ? "" : Number(e.target.value),
               }))
@@ -117,18 +121,20 @@ export default function AulaModal({
           />
         </div>
 
-        <div className="flex justify-end gap-2 pt-2">
+        <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-2">
+          {/* Botón Cancelar con texto blanco para alto contraste */}
           <button
             type="button"
             onClick={onCancel}
-            className="px-4 py-2 rounded-lg border border-slate-300 text-sm text-slate-700 hover:bg-slate-50"
+            className="px-4 py-2 rounded-lg bg-slate-700 text-white text-sm hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-700/50"
           >
             Cancelar
           </button>
+
           <button
             type="submit"
             disabled={busy}
-            className="px-4 py-2 rounded-lg bg-slate-900 text-white text-sm inline-flex items-center gap-2"
+            className="px-4 py-2 rounded-lg bg-slate-900 text-white text-sm inline-flex items-center gap-2 hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900/50 disabled:opacity-80"
           >
             {busy && <Loader2 className="w-4 h-4 animate-spin" />}
             Guardar

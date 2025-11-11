@@ -100,8 +100,7 @@ export default function ImportarOferta() {
       }
 
       switch (status) {
-        case "ok": ok++; break;
-        case "warn": warn++; break;
+        case "ok": ok++; break;       
         case "error": err++; break;
       }
 
@@ -179,7 +178,7 @@ export default function ImportarOferta() {
         <div className="space-y-2">
           <label className={labelCls}>Gestión</label>
           {loading ? (
-            <div className="h-10 rounded bg-neutral-900 animate-pulse" />
+            <div className="h-10 rounded bg-slate-500 animate-pulse" />
           ) : (
             <select
               value={gestionId}
@@ -199,7 +198,7 @@ export default function ImportarOferta() {
       </section>
 
       {/* Acciones */}
-      <div className="flex gap-2">
+      <div className="flex gap-2 flex-wrap">
         <button
           onClick={doPreview}
           disabled={busy || !file || typeof gestionId !== "number"}
@@ -218,7 +217,7 @@ export default function ImportarOferta() {
 
       {/* Resumen */}
       {(totals.total > 0) && (
-        <div className="flex items-center gap-4 text-sm">
+        <div className="flex items-center gap-4 text-sm flex-wrap">
           <span className="inline-flex items-center gap-1 text-slate-800"><Eye className="w-4 h-4 text-slate-800" /> {totals.total} filas</span>
           <span className="inline-flex items-center gap-1 text-green-700"><CheckCircle2 className="w-4 h-4 text-green-700" /> OK: {totals.ok}</span>
           <span className="inline-flex items-center gap-1 text-amber-700"><AlertTriangle className="w-4 h-4 text-amber-700" /> Advertencias: {totals.warn}</span>

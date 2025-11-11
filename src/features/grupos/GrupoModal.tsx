@@ -2,7 +2,7 @@ import { Loader2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import type { GestionDTO, MateriaMiniDTO, Turno } from "./types";
 
-// FormState (interno del modal): con "" para manejar selects vacíos
+// FormState interno: "" para selects vacíos
 type FormState = {
   gestion_id: number | "";
   materia_id: number | "";
@@ -19,7 +19,6 @@ const emptyForm: FormState = {
   capacidad: "",
 };
 
-// Payload que el padre recibe (normalizado)
 export type GrupoSubmitPayload = {
   gestion_id: number;
   materia_id: number;
@@ -48,28 +47,26 @@ export default function GrupoModal({
   const [form, setForm] = useState<FormState>(initial ?? emptyForm);
 
   useEffect(() => {
-    if (open) {
-      setForm(initial ?? emptyForm);
-    }
+    if (open) setForm(initial ?? emptyForm);
   }, [open, initial]);
 
-  const labelCls = "block text-sm text-slate-600";
+  // Alto contraste
+  const labelCls = "block text-sm text-slate-900 font-medium";
   const inputCls =
-    "w-full rounded-xl border border-slate-200 px-3 py-2 bg-white text-slate-800 " +
-    "placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-300";
+    "w-full rounded-xl border border-slate-300 px-3 py-2 bg-white text-slate-900 " +
+    "placeholder:text-slate-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400";
 
   const turnos: Turno[] = ["manana", "tarde", "noche"];
 
   const gestOpts = useMemo(
-    () => gestiones.map(g => ({ id: g.id_gestion, label: `${g.anio}-${g.periodo}` })),
+    () => gestiones.map((g) => ({ id: g.id_gestion, label: `${g.anio}-${g.periodo}` })),
     [gestiones]
   );
   const matOpts = useMemo(
-    () => materias.map(m => ({ id: m.id_materia, label: `${m.codigo} · ${m.nombre}` })),
+    () => materias.map((m) => ({ id: m.id_materia, label: `${m.codigo} · ${m.nombre}` })),
     [materias]
   );
 
-  // ✅ El guard va después de TODOS los hooks
   if (!open) return null;
 
   async function submit(e: React.FormEvent) {
@@ -93,10 +90,13 @@ export default function GrupoModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center">
+    <div className="fixed inset-0 z-50 grid place-items-center" role="dialog" aria-modal="true">
       <div className="absolute inset-0 bg-black/40" onClick={onCancel} />
-      <form onSubmit={submit} className="relative bg-white rounded-2xl shadow-xl w-[95%] max-w-2xl p-6 space-y-4">
-        <h3 className="text-lg font-semibold text-slate-800">
+      <form
+        onSubmit={submit}
+        className="relative bg-white rounded-2xl shadow-xl w-[95%] sm:w-[90%] max-w-2xl p-6 sm:p-7 space-y-4"
+      >
+        <h3 className="text-lg font-semibold text-slate-900">
           {initial ? "Editar grupo" : "Nuevo grupo"}
         </h3>
 
@@ -105,11 +105,17 @@ export default function GrupoModal({
             <label className={labelCls}>Gestión</label>
             <select
               value={form.gestion_id}
-              onChange={(e) => setForm(s => ({ ...s, gestion_id: e.target.value ? Number(e.target.value) : "" }))}
+              onChange={(e) =>
+                setForm((s) => ({ ...s, gestion_id: e.target.value ? Number(e.target.value) : "" }))
+              }
               className={inputCls}
             >
-              <option value="">{/* placeholder */}Seleccione gestión</option>
-              {gestOpts.map(g => <option key={g.id} value={g.id}>{g.label}</option>)}
+              <option value="">Seleccione gestión</option>
+              {gestOpts.map((g) => (
+                <option key={g.id} value={g.id}>
+                  {g.label}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -117,11 +123,17 @@ export default function GrupoModal({
             <label className={labelCls}>Materia</label>
             <select
               value={form.materia_id}
-              onChange={(e) => setForm(s => ({ ...s, materia_id: e.target.value ? Number(e.target.value) : "" }))}
+              onChange={(e) =>
+                setForm((s) => ({ ...s, materia_id: e.target.value ? Number(e.target.value) : "" }))
+              }
               className={inputCls}
             >
-              <option value="">{/* placeholder */}Seleccione materia</option>
-              {matOpts.map(m => <option key={m.id} value={m.id}>{m.label}</option>)}
+              <option value="">Seleccione materia</option>
+              {matOpts.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.label}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -129,7 +141,7 @@ export default function GrupoModal({
             <label className={labelCls}>Paralelo</label>
             <input
               value={form.paralelo}
-              onChange={(e) => setForm(s => ({ ...s, paralelo: e.target.value }))}
+              onChange={(e) => setForm((s) => ({ ...s, paralelo: e.target.value }))}
               placeholder="A"
               className={inputCls}
             />
@@ -139,11 +151,15 @@ export default function GrupoModal({
             <label className={labelCls}>Turno</label>
             <select
               value={form.turno}
-              onChange={(e) => setForm(s => ({ ...s, turno: e.target.value as Turno }))}
+              onChange={(e) => setForm((s) => ({ ...s, turno: e.target.value as Turno }))}
               className={inputCls}
             >
-              <option value="">{/* placeholder */}Seleccione turno</option>
-              {turnos.map(t => <option key={t} value={t}>{t}</option>)}
+              <option value="">Seleccione turno</option>
+              {turnos.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -153,25 +169,31 @@ export default function GrupoModal({
               type="number"
               min={1}
               value={form.capacidad}
-              onChange={(e) => setForm(s => ({ ...s, capacidad: e.target.value === "" ? "" : Number(e.target.value) }))}
+              onChange={(e) =>
+                setForm((s) => ({
+                  ...s,
+                  capacidad: e.target.value === "" ? "" : Number(e.target.value),
+                }))
+              }
               placeholder="40"
               className={inputCls}
             />
           </div>
         </div>
 
-        <div className="flex justify-end gap-2 pt-2">
+        <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-2">
+          {/* Cancelar: texto blanco + fondo oscuro para que no se camufle */}
           <button
             type="button"
             onClick={onCancel}
-            className="px-4 py-2 rounded-lg border border-slate-300 text-sm text-slate-700 hover:bg-slate-50"
+            className="px-4 py-2 rounded-lg bg-slate-700 text-white text-sm hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-700/50"
           >
             Cancelar
           </button>
           <button
             type="submit"
             disabled={busy}
-            className="px-4 py-2 rounded-lg bg-slate-900 text-white text-sm inline-flex items-center gap-2"
+            className="px-4 py-2 rounded-lg bg-slate-900 text-white text-sm inline-flex items-center gap-2 hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900/50 disabled:opacity-80"
           >
             {busy && <Loader2 className="w-4 h-4 animate-spin" />}
             Guardar
@@ -181,4 +203,3 @@ export default function GrupoModal({
     </div>
   );
 }
-
