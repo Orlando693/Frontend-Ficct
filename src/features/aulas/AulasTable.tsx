@@ -1,15 +1,17 @@
-import { Pencil, ToggleLeft, ToggleRight } from "lucide-react";
+import { Pencil, ToggleLeft, ToggleRight, Trash2 } from "lucide-react";
 import type { Aula, AulaEstado } from "./types";
 
 export default function AulasTable({
   items,
   onEdit,
   onToggle,
+  onDelete,
   loading = false,
 }: {
   items: Aula[];
   onEdit: (a: Aula) => void;
   onToggle: (a: Aula, next: AulaEstado) => void;
+  onDelete: (a: Aula) => void;
   loading?: boolean;
 }) {
   const SkeletonRow = () => (
@@ -134,6 +136,16 @@ export default function AulasTable({
                             <ToggleRight className="w-4 h-4" />
                           )}
                           {isActivo ? "Inactivar" : "Activar"}
+                        </button>
+
+                        <button
+                          onClick={() => onDelete(a)}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-600 text-white hover:bg-rose-700 focus:outline-none focus:ring-2 focus:ring-rose-600/50 shadow-sm"
+                          title="Eliminar"
+                          aria-label="Eliminar"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          Eliminar
                         </button>
                       </div>
                     </td>

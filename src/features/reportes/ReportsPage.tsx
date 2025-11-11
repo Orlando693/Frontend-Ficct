@@ -3,15 +3,16 @@
 import type React from "react"
 import { useEffect, useMemo, useState } from "react"
 import { BarChart3, Download, Printer, Search, RefreshCcw } from "lucide-react"
-import { listDocentes, generarReportes } from "./api"
+import {
+  listDocentes,
+  generarReportes,
+  listGestionesCatalog,
+  listCarrerasCatalog,
+  listMateriasCatalog,
+  listGruposCatalog,
+  listAulasCatalog,
+} from "./api"
 import type { DocenteItem, Filtros, Row, TipoReporte } from "./types"
-
-// Catálogos locales (selects)
-const carreras = ["Sistemas", "Informática", "Industrial"]
-const materias = ["BD I", "Algoritmos", "Ingeniería de SW", "Redes"]
-const grupos = ["A-1", "A-2", "B-1", "B-2"]
-const aulas = ["A-101", "A-102", "B-201", "B-202"]
-const gestiones = ["2024-2", "2024-1", "2023-2"]
 
 // CSV helper
 function toCSV(rows: Row[]): string {
@@ -34,13 +35,111 @@ function toCSV(rows: Row[]): string {
 }
 
 export default function ReportsPage() {
-  const [f, setF] = useState<Filtros>({ tipo: "horarios", gestion: "2024-2", turno: "" })
+  const [f, setF] = useState<Filtros>({ tipo: "horarios", gestion: "", turno: "" })
   const [data, setData] = useState<Row[]>([])
   const [error, setError] = useState<string | null>(null)
+  const [gestiones, setGestiones] = useState<string[]>([])
+  const [carreras, setCarreras] = useState<string[]>([])
+  const [materias, setMaterias] = useState<string[]>([])
+  const [grupos, setGrupos] = useState<string[]>([])
+  const [aulas, setAulas] = useState<string[]>([])
+  const [loadingCatalogs, setLoadingCatalogs] = useState(false)
+  const [loadingGrupos, setLoadingGrupos] = useState(false)
 
   // Docentes
   const [docentes, setDocentes] = useState<DocenteItem[]>([])
   const [loadingDocentes, setLoadingDocentes] = useState(false)
+
+  useEffect(() => {
+    let mounted = true
+    setLoadingCatalogs(true)
+    ;(async () => {
+      try {
+        const [gestList, carreraList, materiaList, aulaList] = await Promise.all([
+          listGestionesCatalog(),
+          listCarrerasCatalog(),
+          listMateriasCatalog(),
+          listAulasCatalog(),
+        ])
+        if (!mounted) return
+        setGestiones(gestList)
+        setCarreras(carreraList)
+        setMaterias(materiaList)
+        setAulas(aulaList)
+        setF((prev) => {
+          let changed = false
+          const next = { ...prev }
+          const firstGestion = gestList[0] ?? ""
+          if (!next.gestion) {
+            if (firstGestion) {
+              next.gestion = firstGestion
+              changed = next.gestion !== prev.gestion
+            } else if (next.gestion !== "") {
+              next.gestion = ""
+              changed = true
+            }
+          } else if (gestList.length && !gestList.includes(next.gestion)) {
+            next.gestion = firstGestion
+            changed = true
+          } else if (!gestList.length && next.gestion) {
+            next.gestion = ""
+            changed = true
+          }
+          const sanitize = (field: keyof Filtros, allowed: string[]) => {
+            const current = next[field]
+            if (current && typeof current === "string" && (!allowed.length || !allowed.includes(current))) {
+              ;(next as any)[field] = ""
+              changed = true
+            }
+          }
+          sanitize("carrera", carreraList)
+          sanitize("materia", materiaList)
+          sanitize("aula", aulaList)
+          return changed ? next : prev
+        })
+      } catch (err) {
+        console.error("No se pudieron cargar los catálogos de reportes", err)
+      } finally {
+        if (mounted) setLoadingCatalogs(false)
+      }
+    })()
+    return () => {
+      mounted = false
+    }
+  }, [])
+
+  useEffect(() => {
+    let cancelled = false
+    async function load() {
+      if (!f.gestion) {
+        setGrupos([])
+        return
+      }
+      setLoadingGrupos(true)
+      try {
+        const list = await listGruposCatalog(f.gestion)
+        if (cancelled) return
+        setGrupos(list)
+        setF((prev) => {
+          if (!prev.grupo) return prev
+          if (list.includes(prev.grupo)) return prev
+          return { ...prev, grupo: "" }
+        })
+      } catch (err) {
+        console.error("No se pudieron cargar los grupos para la gesti��n", err)
+        if (!cancelled) {
+          setGrupos([])
+          setF((prev) => (prev.grupo ? { ...prev, grupo: "" } : prev))
+        }
+      } finally {
+        if (!cancelled) setLoadingGrupos(false)
+      }
+    }
+    load()
+    return () => {
+      cancelled = true
+    }
+  }, [f.gestion])
 
   useEffect(() => {
     let mounted = true
@@ -104,7 +203,8 @@ export default function ReportsPage() {
   }
 
   function clearAll() {
-    setF({ tipo: "horarios", gestion: "2024-2", turno: "" })
+    const nextGestion = gestiones[0] ?? ""
+    setF({ tipo: "horarios", gestion: nextGestion, turno: "" })
     setData([])
     setError(null)
   }
@@ -277,12 +377,19 @@ export default function ReportsPage() {
               className="w-full border rounded-lg px-3 py-2 text-sm"
               value={f.gestion}
               onChange={(e) => setF({ ...f, gestion: e.target.value })}
+              disabled={!gestiones.length && loadingCatalogs}
             >
-              {gestiones.map((g) => (
-                <option key={g} value={g}>
-                  {g}
+              {gestiones.length === 0 ? (
+                <option value="">
+                  {loadingCatalogs ? "Cargando gestiones..." : "Sin gestiones"}
                 </option>
-              ))}
+              ) : (
+                gestiones.map((g) => (
+                  <option key={g} value={g}>
+                    {g}
+                  </option>
+                ))
+              )}
             </select>
           </div>
 
@@ -356,19 +463,30 @@ export default function ReportsPage() {
           </div>
 
           <div>
-            <Label>Grupo</Label>
-            <select
-              className="w-full border rounded-lg px-3 py-2 text-sm"
-              value={f.grupo || ""}
-              onChange={(e) => setF({ ...f, grupo: e.target.value })}
-            >
-              <option value="">Todos</option>
-              {grupos.map((g) => (
+          <Label>Grupo</Label>
+          <select
+            className="w-full border rounded-lg px-3 py-2 text-sm"
+            value={f.grupo || ""}
+            onChange={(e) => setF({ ...f, grupo: e.target.value })}
+            disabled={!f.gestion || (loadingGrupos && grupos.length === 0)}
+          >
+            <option value="">Todos</option>
+            {loadingGrupos && grupos.length === 0 ? (
+              <option value="" disabled>
+                Cargando grupos...
+              </option>
+            ) : grupos.length === 0 ? (
+              <option value="" disabled>
+                {f.gestion ? "Sin grupos para la gestión" : "Selecciona una gestión"}
+              </option>
+            ) : (
+              grupos.map((g) => (
                 <option key={g} value={g}>
                   {g}
                 </option>
-              ))}
-            </select>
+              ))
+            )}
+          </select>
           </div>
 
           <div>

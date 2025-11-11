@@ -8,6 +8,43 @@ import { Calendar, Shield, Clock, Mail, Lock, Eye, EyeOff } from "lucide-react"
 const API_BASE =
   (import.meta as any).env?.VITE_API_URL ?? "http://127.0.0.1:8080/api"
 
+const ROLE_HOME_DEFAULT = "/admin"
+const ROLE_HOME: Record<string, string> = {
+  admin: "/admin",
+  administrador: "/admin",
+  cpd: "/admin",
+  decanato: "/decanato",
+  jefatura: "/jefatura",
+  docente: "/docente",
+}
+
+function resolveRoleHome(role?: string | null) {
+  if (!role) return ROLE_HOME_DEFAULT
+  const key = role.toString().trim().toLowerCase()
+  return ROLE_HOME[key] ?? ROLE_HOME_DEFAULT
+}
+
+function readStoredRole(): string | null {
+  if (typeof window === "undefined") return null
+  const storages: Storage[] = [localStorage, sessionStorage]
+
+  for (const store of storages) {
+    try {
+      const rawUser = store.getItem("auth_user")
+      if (rawUser) {
+        const parsed = JSON.parse(rawUser)
+        const role = parsed?.rol ?? parsed?.role
+        if (role) return role as string
+      }
+    } catch {}
+
+    const direct = store.getItem("role")
+    if (direct) return direct
+  }
+
+  return null
+}
+
 export default function Login() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -25,7 +62,8 @@ export default function Login() {
       sessionStorage.getItem("auth_token")
 
     if (existingToken) {
-      window.location.replace("/admin")
+      const storedRole = readStoredRole()
+      window.location.replace(resolveRoleHome(storedRole))
     }
   }, [])
 
@@ -82,11 +120,12 @@ export default function Login() {
       main.setItem("auth_token", token)      // compatibilidad con tu app
       main.setItem("access_token", token)    // por si algún módulo lo espera
 
+      const role = data.user?.rol ?? data.user?.role ?? null
+
       if (data.user) {
         try {
           main.setItem("auth_user", JSON.stringify(data.user))
         } catch {}
-        const role = data.user?.rol ?? data.user?.role
         if (role) main.setItem("role", role)
       }
       if (data.abilities) {
@@ -100,14 +139,8 @@ export default function Login() {
         other.removeItem(k),
       )
 
-      // Redirección por rol (por ahora todos a /admin)
-      const path: Record<string, string> = {
-        Decanato: "/admin",
-        CPD: "/admin",
-        Jefatura: "/admin",
-        Docente: "/admin",
-      }
-      window.location.assign(path[data.user?.rol] || "/admin")
+      // Redirección por rol hacia el panel correspondiente
+      window.location.assign(resolveRoleHome(role))
     } catch (err: any) {
       setError(err?.message || "No se pudo iniciar sesión.")
     } finally {

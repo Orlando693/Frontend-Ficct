@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { Search, Plus } from "lucide-react";
 import type { Aula, AulaEstado, AulaTipo } from "./types";
-import { listAulas, createAula, updateAula, setEstadoAula } from "./api";
+import { listAulas, createAula, updateAula, setEstadoAula, deleteAula } from "./api";
 import AulaModal from "./AulaModal";
 import AulasTable from "./AulasTable";
 
@@ -83,6 +83,18 @@ export default function AulasFeature() {
     }
   }
 
+  async function remove(a: Aula) {
+    const ok = window.confirm(`¿Eliminar el aula ${a.numero}? Esta acción no se puede deshacer.`);
+    if (!ok) return;
+    try {
+      setError(null);
+      await deleteAula(a.id);
+      fetchData();
+    } catch (e: any) {
+      setError(e.message || "No se pudo eliminar el aula");
+    }
+  }
+
   return (
     <div className="space-y-4">
       <header className="flex items-center justify-between">
@@ -140,7 +152,7 @@ export default function AulasFeature() {
         </select>
       </section>
 
-      <AulasTable items={items} onEdit={openEdit} onToggle={toggle} loading={loading} />
+      <AulasTable items={items} onEdit={openEdit} onToggle={toggle} onDelete={remove} loading={loading} />
 
       {error && (
         <div className="p-3 rounded-xl bg-red-50 text-red-800 border border-red-300">

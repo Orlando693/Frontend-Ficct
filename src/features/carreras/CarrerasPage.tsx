@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useEffect, useMemo, useState } from "react"
-import { GraduationCap, Plus, Search, ToggleLeft, ToggleRight, Pencil } from "lucide-react"
+import { GraduationCap, Plus, Search, ToggleLeft, ToggleRight, Pencil, Trash2 } from "lucide-react"
 import type { Carrera, EstadoCarrera } from "./types"
 import * as api from "./api"
 import CareerFormModal from "./CareerFormModal"
@@ -57,6 +57,19 @@ export default function CarrerasPage() {
     const up = await api.setEstado(c.id, estado)
     setData((d) => d.map((x) => (x.id === up.id ? up : x)))
     setMsg(`Carrera ${estado === "ACTIVA" ? "activada" : "inactivada"}.`)
+  }
+
+  async function eliminar(c: Carrera) {
+    const confirm = window.confirm(`¿Eliminar la carrera ${c.nombre}? Esta acción no se puede deshacer.`)
+    if (!confirm) return
+    try {
+      await api.remove(c.id)
+      setData((d) => d.filter((x) => x.id !== c.id))
+      setMsg("Carrera eliminada.")
+    } catch (err: any) {
+      console.error(err)
+      setMsg(err?.message || "No se pudo eliminar la carrera.")
+    }
   }
 
   return (
@@ -185,6 +198,13 @@ export default function CarrerasPage() {
                           <ToggleRight className="w-3.5 h-3.5" /> <span className="hidden lg:inline">Activar</span>
                         </button>
                       )}
+                      <button
+                        onClick={() => eliminar(c)}
+                        className="px-2 sm:px-3 py-1.5 rounded-lg bg-rose-600 text-white hover:bg-rose-700 inline-flex items-center gap-1.5 text-xs"
+                        title="Eliminar"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" /> <span className="hidden lg:inline">Eliminar</span>
+                      </button>
                     </div>
                   </td>
                 </tr>

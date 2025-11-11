@@ -25,7 +25,7 @@ export default function RoleModal({
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
 
-  // ❌ const mods = roleApi.modules()  // ← eliminado: no se usaba en este componente
+  //  const mods = roleApi.modules()  // ← eliminado: no se usaba en este componente
 
   async function load() {
     const r = await roleApi.list()

@@ -79,3 +79,7 @@ export async function setEstadoAula(id: number, estado: AulaEstado) {
   });
   return { data: dtoToModel(pickOne(json)) };
 }
+
+export async function deleteAula(id: number) {
+  await apiFetch(`/aulas/${id}`, { method: "DELETE" });
+}
