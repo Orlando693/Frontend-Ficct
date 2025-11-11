@@ -48,7 +48,8 @@ export function saveAuth(token: string, user?: any, abilities?: any, remember = 
 }
 
 export function clearAuth() {
-  [TOKEN_KEY, USER_KEY, ROLE_KEY, ABIL_KEY].forEach(k => {
+  const extraKeys = ['token', 'access_token'];
+  [TOKEN_KEY, USER_KEY, ROLE_KEY, ABIL_KEY, ...extraKeys].forEach(k => {
     localStorage.removeItem(k);
     sessionStorage.removeItem(k);
   });
